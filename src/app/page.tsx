@@ -27,6 +27,49 @@ export default function Home() {
         <span className="sticker sticker text-lg rotate-[8deg]">💪</span>
       </div>
 
+      {/* Floating Coffee QR - Fixed Position */}
+      <div className="fixed bottom-4 right-4 z-40 hidden lg:block animate-float-bounce">
+        <div
+          className="relative bg-white border-4 border-black shadow-[6px_6px_0px_#1a1a1a] p-3
+            hover:scale-110 transition-all cursor-pointer group"
+          onClick={() => setShowCoffee(true)}
+        >
+          {/* NEW Badge */}
+          <div className="absolute -top-3 -right-3 bg-[#FF6B6B] text-white text-[8px] font-bold px-2 py-1 border-2 border-black rotate-[12deg] z-10">
+            HOT!
+          </div>
+
+          {/* Sparkles */}
+          <div className="absolute -top-2 -left-2 text-lg animate-sparkle">✨</div>
+          <div className="absolute -bottom-1 -right-1 text-lg animate-sparkle-delay">⭐</div>
+          <div className="absolute top-1/2 -left-3 text-sm animate-sparkle-delay-2">💫</div>
+
+          {/* Header */}
+          <div className="bg-[#FFDE00] text-black text-[10px] font-bold uppercase px-2 py-1 border-2 border-black mb-2 text-center">
+            ☕ สนับสนุน
+          </div>
+
+          {/* QR Image */}
+          <Image
+            src="/promptpay-qr.jpg"
+            alt="QR สนับสนุน"
+            width={100}
+            height={120}
+            className="border-2 border-black group-hover:scale-105 transition-transform"
+          />
+
+          {/* Footer */}
+          <div className="bg-[#7BF1A8] text-black text-[9px] text-center mt-2 py-1 border-2 border-black font-bold">
+            สแกนให้ค่ากาแฟ 🙏
+          </div>
+
+          {/* Click hint */}
+          <div className="text-[8px] text-center mt-1 text-black/50 group-hover:text-black transition-colors">
+            👆 คลิกเพื่อขยาย
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <header className="py-6 md:py-8 px-4 relative">
         <div className="max-w-6xl mx-auto text-center">
