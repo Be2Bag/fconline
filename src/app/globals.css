@@ -1,26 +1,294 @@
+/* Import Google Fonts - Prompt for Thai readability + Space Mono for numbers */
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap');
+
 @import "tailwindcss";
 
+/* Neo-Brutalism Design System */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core Colors - Bold & Vibrant */
+  --color-primary: #FFDE00;
+  --color-secondary: #FF6B6B;
+  --color-accent: #00D4AA;
+  --color-black: #1a1a1a;
+  --color-white: #FFFFF0;
+  --color-bg: #F5F5DC;
+  --color-pink: #FF90E8;
+  --color-blue: #6EB5FF;
+  --color-orange: #FF9F1C;
+  --color-green: #7BF1A8;
+
+  /* Shadows - Chunky offset shadows */
+  --shadow-brutal: 4px 4px 0px var(--color-black);
+  --shadow-brutal-lg: 6px 6px 0px var(--color-black);
+  --shadow-brutal-hover: 2px 2px 0px var(--color-black);
+
+  /* Borders */
+  --border-brutal: 3px solid var(--color-black);
+  --border-brutal-thick: 4px solid var(--color-black);
+
+  --background: #F5F5DC;
+  --foreground: #1a1a1a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Prompt', sans-serif;
+  --font-mono: 'Space Mono', monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  background: var(--color-bg);
+  background-image:
+    radial-gradient(circle, #00000008 1px, transparent 1px);
+  background-size: 20px 20px;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Prompt', sans-serif;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Neo-Brutalist Card */
+.brutal-card {
+  background: var(--color-white);
+  border: var(--border-brutal-thick);
+  box-shadow: var(--shadow-brutal-lg);
+  border-radius: 0;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.brutal-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px var(--color-black);
+}
+
+/* Glass card override for brutalism */
+.glass-card {
+  background: var(--color-white);
+  border: var(--border-brutal-thick);
+  box-shadow: var(--shadow-brutal-lg);
+  border-radius: 0 !important;
+  backdrop-filter: none;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.glass-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px var(--color-black);
+}
+
+/* Brutalist Button */
+.brutal-btn {
+  background: var(--color-primary);
+  border: var(--border-brutal);
+  box-shadow: var(--shadow-brutal);
+  border-radius: 0;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.brutal-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-brutal-lg);
+}
+
+.brutal-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* Sticker Effect */
+.sticker {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-primary);
+  border: 2px solid var(--color-black);
+  box-shadow: 2px 2px 0px var(--color-black);
+  transform: rotate(-2deg);
+  font-weight: 700;
+}
+
+.sticker-pink {
+  background: var(--color-pink);
+}
+
+.sticker-blue {
+  background: var(--color-blue);
+}
+
+.sticker-green {
+  background: var(--color-green);
+}
+
+/* Custom Scrollbar - Brutalist */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-white);
+  border: 2px solid var(--color-black);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border: 2px solid var(--color-black);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-orange);
+}
+
+/* Hero Title - Bold & Raw */
+.hero-title {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  color: var(--color-black);
+  text-shadow: 3px 3px 0px var(--color-primary);
+  letter-spacing: -0.02em;
+}
+
+/* Brutalist Input */
+.brutal-input {
+  background: var(--color-white);
+  border: var(--border-brutal);
+  box-shadow: var(--shadow-brutal);
+  border-radius: 0;
+  font-family: 'Space Mono', monospace;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.brutal-input:focus {
+  outline: none;
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-brutal-lg);
+  border-color: var(--color-black);
+}
+
+/* Position Chip - Sticker Style */
+.position-chip {
+  position: relative;
+  transform: rotate(0deg);
+  transition: transform 0.1s ease;
+}
+
+.position-chip:hover {
+  transform: rotate(-1deg) scale(1.02);
+}
+
+/* Overlapping Element Effect */
+.overlap-effect {
+  position: relative;
+}
+
+.overlap-effect::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 100%;
+  height: 100%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-black);
+  z-index: -1;
+}
+
+/* Brutalist Badge */
+.brutal-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: var(--color-primary);
+  border: 2px solid var(--color-black);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  .glass-card {
+    padding: 1rem !important;
+  }
+
+  .hero-title {
+    font-size: 1.75rem !important;
+    text-shadow: 2px 2px 0px var(--color-primary);
+  }
+
+  button {
+    min-height: 44px;
+  }
+
+  input {
+    min-height: 44px;
+    font-size: 16px !important;
+  }
+
+  :root {
+    --shadow-brutal: 3px 3px 0px var(--color-black);
+    --shadow-brutal-lg: 4px 4px 0px var(--color-black);
+  }
+}
+
+/* Safe area for notched devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Retro Noise Texture */
+.noise-bg::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Selection */
+::selection {
+  background: var(--color-primary);
+  color: var(--color-black);
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 3px solid var(--color-black);
+  outline-offset: 2px;
+}
+
+/* Marquee animation for fun */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
 }
