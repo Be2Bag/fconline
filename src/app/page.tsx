@@ -125,7 +125,7 @@ export default function Home() {
                 : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
               }`}
           >
-            🎯 หาตำแหน่ง
+            🎯 หาตำแหน่งที่ดีที่สุด
             {activeTab === "position-finder" && (
               <span className="absolute -top-2 -right-2 text-xs bg-[#7BF1A8] text-black px-1.5 py-0.5 border-2 border-black rotate-[-8deg]">
                 NEW

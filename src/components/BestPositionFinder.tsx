@@ -200,7 +200,7 @@ export default function BestPositionFinder() {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-[9px] md:text-[10px] text-black/60 uppercase">หลังอัพค่าสเตตัส</div>
+                                        <div className="text-[9px] md:text-[10px] text-black/60 uppercase">หลังฝึกพิเศษ</div>
                                         <div className="text-xl md:text-2xl font-bold text-black font-mono">
                                             {result.upgradedOVR.toFixed(2)}
                                         </div>
