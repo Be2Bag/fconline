@@ -163,7 +163,7 @@ export default function Calculator() {
                             </div>
                         </div>
 
-                        <div className="space-y-1.5 md:space-y-2 max-h-[400px] md:max-h-[500px] overflow-y-auto pr-1 md:pr-2 custom-scrollbar">
+                        <div className="space-y-1.5 md:space-y-2">
                             {positionData?.stats.map((statWeight) => (
                                 <StatInput
                                     key={statWeight.stat}
