@@ -145,6 +145,12 @@ export default function Calculator() {
                                 <span className={`text-xs font-bold px-2 py-0.5 border-2 border-black ${allStatsFilled ? 'bg-[#7BF1A8]' : 'bg-white'}`}>
                                     {filledCount}/{totalCount}
                                 </span>
+                                {/* Tab tip - shows only when no stats filled yet */}
+                                {filledCount === 0 && (
+                                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-white border-2 border-black text-[10px] text-black">
+                                        💡 กด <kbd className="px-1 bg-[#FFDE00] border border-black font-mono font-bold">Tab</kbd> เพื่อกรอกต่อ
+                                    </span>
+                                )}
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="text-xs md:text-sm font-bold text-black">
