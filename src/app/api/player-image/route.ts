@@ -84,7 +84,8 @@ export async function GET(request: NextRequest) {
             },
         });
     } catch (error) {
-        console.error('Error fetching player image:', error);
+        // Log error อย่างปลอดภัย ไม่เปิดเผยข้อมูล sensitive
+        console.error('Error fetching player image:', error instanceof Error ? error.message : 'Unknown error');
         return NextResponse.json(
             { error: 'เกิดข้อผิดพลาดในการดึงรูปนักเตะ' },
             { status: 500 }

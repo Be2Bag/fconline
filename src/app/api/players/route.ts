@@ -1,20 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client, Regions } from '@hongbeccodeduocchua/fo4-db';
 
+// ===== Constants สำหรับ validation และ cache =====
+const MIN_NAME_LENGTH = 2;
+const MAX_NAME_LENGTH = 50;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 ชั่วโมง
+
 // สร้าง client สำหรับเชื่อมต่อ fo4-db API (region: Vietnam)
 const client = new Client({
     region: Regions.VN,
 });
 
-// Cache สำหรับ Season metadata
+// Cache สำหรับ Season metadata พร้อม TTL
 let seasonCache: Map<string, { id: number; img: string }> | null = null;
+let seasonCacheTimestamp: number = 0;
 
 /**
  * โหลด Season metadata จาก Nexon
  * ใช้สำหรับแสดง season icon
+ * Cache จะ expire หลังจาก 24 ชั่วโมง
  */
 async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: string }>> {
-    if (seasonCache) return seasonCache;
+    const now = Date.now();
+
+    // ตรวจสอบว่า cache ยังใช้ได้อยู่หรือไม่
+    if (seasonCache && (now - seasonCacheTimestamp) < CACHE_TTL_MS) {
+        return seasonCache;
+    }
 
     try {
         const response = await fetch('https://open.api.nexon.com/static/fconline/meta/seasonid.json');
@@ -170,10 +182,13 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
             seasonCache.set(code, info);
         }
 
+        // อัพเดท cache timestamp
+        seasonCacheTimestamp = Date.now();
         console.log('Loaded season metadata:', seasonCache.size, 'seasons');
         return seasonCache;
     } catch (error) {
-        console.error('Failed to load season metadata:', error);
+        // Log error อย่างปลอดภัย ไม่เปิดเผยข้อมูล sensitive
+        console.error('Failed to load season metadata:', error instanceof Error ? error.message : 'Unknown error');
         return new Map();
     }
 }
@@ -203,9 +218,20 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const name = searchParams.get('name');
 
-        if (!name || name.trim().length < 2) {
+        // === Input Validation ===
+        const sanitizedName = name?.trim() || '';
+
+        // ตรวจสอบ length
+        if (sanitizedName.length < MIN_NAME_LENGTH) {
             return NextResponse.json(
                 { error: 'กรุณาระบุชื่อนักเตะ (อย่างน้อย 2 ตัวอักษร)' },
+                { status: 400 }
+            );
+        }
+
+        if (sanitizedName.length > MAX_NAME_LENGTH) {
+            return NextResponse.json(
+                { error: 'ชื่อนักเตะยาวเกินไป (สูงสุด 50 ตัวอักษร)' },
                 { status: 400 }
             );
         }
@@ -215,7 +241,7 @@ export async function GET(request: NextRequest) {
 
         // ค้นหานักเตะจาก fo4-db
         const players = await client.player.find({
-            name: name.trim(),
+            name: sanitizedName,
         });
 
         // Map players โดยเพิ่ม season info
@@ -239,7 +265,8 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ players: mappedPlayers });
     } catch (error) {
-        console.error('Error searching players:', error);
+        // Log error อย่างปลอดภัย
+        console.error('Error searching players:', error instanceof Error ? error.message : 'Unknown error');
         return NextResponse.json(
             { error: 'เกิดข้อผิดพลาดในการค้นหานักเตะ' },
             { status: 500 }

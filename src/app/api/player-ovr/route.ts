@@ -80,7 +80,8 @@ export async function GET(request: NextRequest) {
             },
         });
     } catch (error) {
-        console.error('Error fetching player OVR:', error);
+        // Log error อย่างปลอดภัย ไม่เปิดเผยข้อมูล sensitive
+        console.error('Error fetching player OVR:', error instanceof Error ? error.message : 'Unknown error');
         return NextResponse.json(
             { error: 'เกิดข้อผิดพลาดในการดึงข้อมูล OVR' },
             { status: 500 }
