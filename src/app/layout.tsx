@@ -35,6 +35,20 @@ export const metadata: Metadata = {
     title: "OVR Calculator & ตีบวก Simulator | FC Online",
     description: "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบตีบวกจำลอง และแนะนำการอัพเกรด +2",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "FC Online OVR Calculator",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OVR Calculator & ตีบวก Simulator | FC Online",
+    description: "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบตีบวกจำลอง และแนะนำการอัพเกรด +2",
+    images: ["/og-image.png"],
   },
 };
 
