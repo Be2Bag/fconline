@@ -107,26 +107,9 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
                 id: 111,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/filter/icon_m.png'
             },
-            // Premium - อาจมีหลายแบบ ใช้ icon ทั่วไป
-            'PRM': {
-                id: 0,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/live.png'
-            },
-            // FLG - Flair/Flag season
-            'FLG': {
-                id: 0,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/icon.png'
-            },
-            // Snake Year Limited
-            'SYL': {
-                id: 0,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/live.png'
-            },
-            // 24 World Legend
-            '24WL': {
-                id: 0,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/icon.png'
-            },
+            // PRM (Prime) - ไม่มี official icon จาก Nexon
+            // ลบออกเพื่อให้ UI แสดง text "PRM" แทน icon
+
             // K-League Best - fo4-db ส่ง "25KLB" / "24KLB" / "23KLB" แต่ Nexon ใช้ "25KB" / "24KB" / "23KB"
             '25KLB': {
                 id: 853,
@@ -140,16 +123,7 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
                 id: 805,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/23klb.png'
             },
-            // 25 Chinese Super League
-            '25CSL': {
-                id: 0,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/live.png'
-            },
             // K-League seasons (K + ปี)
-            'K19': {
-                id: 0,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/live.png'
-            },
             'K20': {
                 id: 504,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/20kl.png'
