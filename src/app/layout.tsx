@@ -10,14 +10,30 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "OVR Calculator | FC Online",
+  title: "OVR Calculator & ตีบวก Simulator | FC Online",
   description:
-    "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบแนะนำการอัพเกรดสเตตัส +2 ให้ OVR สูงสุด",
-  keywords: ["FC Online", "OVR Calculator", "ค่า OVR", "คำนวณ OVR", "FIFA Online"],
+    "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบแนะนำการอัพเกรดสเตตัส +2 ให้ OVR สูงสุด และจำลองการตีบวกนักเตะพร้อมอัตราสำเร็จแต่ละเกรด",
+  keywords: [
+    "FC Online",
+    "OVR Calculator",
+    "ค่า OVR",
+    "คำนวณ OVR",
+    "FIFA Online",
+    "ตีบวก",
+    "ตีบวก FC Online",
+    "Upgrade Simulator",
+    "จำลองตีบวก",
+    "อัตราตีบวก",
+    "เกรดนักเตะ",
+    "ตีบวกนักเตะ",
+    "FC Online ตีบวก",
+    "หาตำแหน่งนักเตะ",
+    "Best Position"
+  ],
   authors: [{ name: "FC Online Tools" }],
   openGraph: {
-    title: "OVR Calculator | FC Online",
-    description: "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบแนะนำการอัพเกรด +2",
+    title: "OVR Calculator & ตีบวก Simulator | FC Online",
+    description: "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบตีบวกจำลอง และแนะนำการอัพเกรด +2",
     type: "website",
   },
 };
