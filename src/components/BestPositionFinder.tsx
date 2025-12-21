@@ -113,7 +113,7 @@ export default function BestPositionFinder() {
                 </p>
 
                 {/* Stats Input Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3 max-h-[350px] md:max-h-[400px] overflow-y-auto pr-1 md:pr-2 custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3 max-h-[350px] md:max-h-[400px] overflow-y-auto pr-1 md:pr-2 custom-scrollbar">
                     {allPlayerStats.map((stat) => (
                         <div key={stat} className="bg-white p-2 md:p-3 border-3 border-black shadow-[2px_2px_0px_#1a1a1a]">
                             <label className="text-[9px] md:text-[10px] text-black/60 font-bold block mb-1 truncate uppercase">

@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Calculator from "@/components/Calculator";
 import BestPositionFinder from "@/components/BestPositionFinder";
+import UpgradeSimulator from "@/components/UpgradeSimulator";
 import Image from "next/image";
 
-type TabType = "calculator" | "position-finder";
+type TabType = "calculator" | "position-finder" | "upgrade-simulator";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>("calculator");
@@ -99,10 +100,10 @@ export default function Home() {
 
       {/* Tab Navigation */}
       <div className="max-w-6xl mx-auto px-3 md:px-4 mb-4 md:mb-6 relative">
-        <div className="flex gap-2 md:gap-3">
+        <div className="flex flex-wrap gap-2 md:gap-3">
           <button
             onClick={() => setActiveTab("calculator")}
-            className={`flex-1 py-3 md:py-4 px-3 md:px-4 font-bold text-sm md:text-base uppercase tracking-wide
+            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
               border-4 border-black transition-all relative
               ${activeTab === "calculator"
                 ? "bg-[#FFDE00] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
@@ -118,16 +119,32 @@ export default function Home() {
           </button>
           <button
             onClick={() => setActiveTab("position-finder")}
-            className={`flex-1 py-3 md:py-4 px-3 md:px-4 font-bold text-sm md:text-base uppercase tracking-wide
+            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
               border-4 border-black transition-all relative
               ${activeTab === "position-finder"
                 ? "bg-[#FF90E8] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
                 : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
               }`}
           >
-            🎯 หาตำแหน่งที่ดีที่สุด
+            🎯 หาตำแหน่ง
             {activeTab === "position-finder" && (
               <span className="absolute -top-2 -right-2 text-xs bg-[#7BF1A8] text-black px-1.5 py-0.5 border-2 border-black rotate-[-8deg]">
+                PRO
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("upgrade-simulator")}
+            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
+              border-4 border-black transition-all relative
+              ${activeTab === "upgrade-simulator"
+                ? "bg-[#7BF1A8] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
+                : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
+              }`}
+          >
+            ⚡ ตีบวก
+            {activeTab === "upgrade-simulator" && (
+              <span className="absolute -top-2 -right-2 text-xs bg-[#FF6B6B] text-black px-1.5 py-0.5 border-2 border-black rotate-[12deg]">
                 NEW
               </span>
             )}
@@ -137,7 +154,9 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="px-3 md:px-4 pb-8 md:pb-12 relative z-10">
-        {activeTab === "calculator" ? <Calculator /> : <BestPositionFinder />}
+        {activeTab === "calculator" && <Calculator />}
+        {activeTab === "position-finder" && <BestPositionFinder />}
+        {activeTab === "upgrade-simulator" && <UpgradeSimulator />}
       </main>
 
       {/* Footer */}
