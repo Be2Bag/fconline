@@ -25,6 +25,7 @@ export default function Calculator() {
         useState<EfficientUpgradeResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [hasCalculated, setHasCalculated] = useState(false);
+    const [showTips, setShowTips] = useState(false);
 
     useEffect(() => {
         const positionData = ovrWeights[position];
@@ -145,12 +146,17 @@ export default function Calculator() {
                                 <span className={`text-xs font-bold px-2 py-0.5 border-2 border-black ${allStatsFilled ? 'bg-[#7BF1A8]' : 'bg-white'}`}>
                                     {filledCount}/{totalCount}
                                 </span>
-                                {/* Tab tip - shows only when no stats filled yet */}
-                                {filledCount === 0 && (
-                                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-white border-2 border-black text-[10px] text-black">
-                                        💡 กด <kbd className="px-1 bg-[#FFDE00] border border-black font-mono font-bold">Tab</kbd> เพื่อกรอกต่อ
-                                    </span>
-                                )}
+                                {/* Tips button */}
+                                <button
+                                    onClick={() => setShowTips(true)}
+                                    className="px-3 py-1 bg-[#FF90E8] border-2 border-black text-[10px] md:text-xs font-bold
+                                        shadow-[2px_2px_0px_#1a1a1a] hover:shadow-[3px_3px_0px_#1a1a1a]
+                                        hover:translate-x-[-1px] hover:translate-y-[-1px]
+                                        active:translate-x-[1px] active:translate-y-[1px] active:shadow-none
+                                        transition-all animate-pulse hover:animate-none"
+                                >
+                                    💡 อ่านก่อน!
+                                </button>
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="text-xs md:text-sm font-bold text-black">
@@ -275,6 +281,69 @@ export default function Calculator() {
                     </div>
                 </div>
             </div>
+
+            {/* Tips Popup */}
+            {showTips && (
+                <div
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setShowTips(false)}
+                >
+                    <div
+                        className="bg-white border-4 border-black shadow-[8px_8px_0px_#1a1a1a] p-6 max-w-md w-full"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="text-center mb-4">
+                            <span className="sticker text-sm rotate-[-2deg]">💡 เคล็ดลับการใช้งาน</span>
+                        </div>
+
+                        <div className="space-y-3 mb-4">
+                            {/* Tip 1 */}
+                            <div className="bg-[#FFDE00] border-3 border-black p-3">
+                                <div className="flex items-start gap-2">
+                                    <span className="text-lg">⌨️</span>
+                                    <div>
+                                        <p className="text-sm font-bold">กดปุ่ม Tab เพื่อกรอกต่อเนื่อง</p>
+                                        <p className="text-xs text-black/70">เลื่อนไปช่องถัดไปได้เลยโดยไม่ต้องคลิก</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tip 2 */}
+                            <div className="bg-[#7BF1A8] border-3 border-black p-3">
+                                <div className="flex items-start gap-2">
+                                    <span className="text-lg">⬆️</span>
+                                    <div>
+                                        <p className="text-sm font-bold">ต้องเป็นนักเตะที่เลเวลเต็ม</p>
+                                        <p className="text-xs text-black/70">ค่า OVR จะแสดงถูกต้องเมื่อนักเตะเลเวลเต็มแล้ว</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tip 3 */}
+                            <div className="bg-[#FF90E8] border-3 border-black p-3">
+                                <div className="flex items-start gap-2">
+                                    <span className="text-lg">⚽</span>
+                                    <div>
+                                        <p className="text-sm font-bold">นำนักเตะลงตัวจริง</p>
+                                        <p className="text-xs text-black/70">เพื่อให้ได้บัฟฟูลทีม ค่า OVR จึงจะถูกต้อง</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowTips(false)}
+                            className="w-full py-3 bg-[#FFDE00] font-bold uppercase
+                                border-3 border-black shadow-[3px_3px_0px_#1a1a1a]
+                                hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#1a1a1a]
+                                active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+                                transition-all"
+                        >
+                            เข้าใจแล้ว ✓
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

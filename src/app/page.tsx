@@ -4,9 +4,10 @@ import { useState } from "react";
 import Calculator from "@/components/Calculator";
 import BestPositionFinder from "@/components/BestPositionFinder";
 import UpgradeSimulator from "@/components/UpgradeSimulator";
+import BoxSimulator from "@/components/BoxSimulator";
 import Image from "next/image";
 
-type TabType = "calculator" | "position-finder" | "upgrade-simulator";
+type TabType = "calculator" | "position-finder" | "upgrade-simulator" | "box-simulator";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>("calculator");
@@ -143,8 +144,19 @@ export default function Home() {
               }`}
           >
             ⚡ ตีบวก
-            {activeTab === "upgrade-simulator" && (
-              <span className="absolute -top-2 -right-2 text-xs bg-[#FF6B6B] text-black px-1.5 py-0.5 border-2 border-black rotate-[12deg]">
+          </button>
+          <button
+            onClick={() => setActiveTab("box-simulator")}
+            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
+              border-4 border-black transition-all relative
+              ${activeTab === "box-simulator"
+                ? "bg-[#FF6B6B] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
+                : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
+              }`}
+          >
+            🎁 เปิดกล่อง
+            {activeTab === "box-simulator" && (
+              <span className="absolute -top-2 -right-2 text-xs bg-[#FFDE00] text-black px-1.5 py-0.5 border-2 border-black rotate-[12deg]">
                 NEW
               </span>
             )}
@@ -157,6 +169,7 @@ export default function Home() {
         {activeTab === "calculator" && <Calculator />}
         {activeTab === "position-finder" && <BestPositionFinder />}
         {activeTab === "upgrade-simulator" && <UpgradeSimulator />}
+        {activeTab === "box-simulator" && <BoxSimulator />}
       </main>
 
       {/* Footer */}
