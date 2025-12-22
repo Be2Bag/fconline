@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Prompt } from "next/font/google";
 import "./globals.css";
+import ActiveUsersSticker from "@/components/ActiveUsersSticker";
 
 const prompt = Prompt({
   weight: ["300", "400", "500", "600", "700"],
@@ -70,6 +71,7 @@ export default function RootLayout({
     <html lang="th">
       <body className={`${prompt.variable} font-sans antialiased football-bg`}>
         {children}
+        <ActiveUsersSticker />
       </body>
     </html>
   );
