@@ -69,6 +69,9 @@ export default function UpgradeSimulator() {
     // State สำหรับ Popup แจ้งเตือน
     const [showWarningPopup, setShowWarningPopup] = useState(false);
 
+    // State สำหรับ Popup ข้อจำกัดความรับผิดชอบ (Disclaimer) - แสดงอัตโนมัติตอนเปิดหน้า
+    const [showDisclaimerPopup, setShowDisclaimerPopup] = useState(true);
+
     // ค้นหานักเตะ
     const searchPlayers = useCallback(async (query: string) => {
         if (query.length < 2) {
@@ -200,13 +203,24 @@ export default function UpgradeSimulator() {
         <div className="max-w-6xl mx-auto">
             {/* Header Card */}
             <div className="brutal-card p-4 md:p-6 mb-4 md:mb-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <span className="sticker-green sticker text-sm rotate-[-2deg]">⚡ ตีบวก</span>
-                    <span className="sticker-pink sticker text-sm rotate-[2deg]">+13 MAX</span>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <span className="sticker-green sticker text-sm rotate-[-2deg]">⚡ ตีบวก</span>
+                        <span className="sticker-pink sticker text-sm rotate-[2deg]">+13 MAX</span>
+                    </div>
+                    <button
+                        onClick={() => setShowDisclaimerPopup(true)}
+                        className="px-3 py-2 bg-[#FF6B6B] text-white font-bold text-xs uppercase border-3 border-black
+                            shadow-[3px_3px_0px_#1a1a1a] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_#1a1a1a]
+                            active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all
+                            flex items-center gap-1"
+                    >
+                        ⚠️ ข้อจำกัด
+                    </button>
                 </div>
                 <h2 className="text-xl md:text-2xl font-bold mb-2">Upgrade Simulator</h2>
                 <p className="text-sm text-black/70">
-                    จำลองการตีบวกนักเตะ FC Online - อัตราความสำเร็จเหมือนเกมจริง!
+                    จำลองการตีบวกนักเตะ FC Online - <span className="text-[#FF6B6B] font-bold">อัตราความสำเร็จเหมือนเกมจริง!</span>
                 </p>
             </div>
 
@@ -333,10 +347,10 @@ export default function UpgradeSimulator() {
                         {selectedPlayer && boostGauge > 0 && (
                             <div className="mt-4">
                                 <div className="text-center text-sm font-bold mb-2 text-black/60">
-                                    🧪 วัตถุดิบ ({Math.floor(boostGauge)} การ์ด)
+                                    🧪 วัตถุดิบ ({Math.ceil(boostGauge)} การ์ด)
                                 </div>
                                 <div className="flex justify-center gap-1 flex-wrap">
-                                    {Array.from({ length: Math.floor(boostGauge) }, (_, i) => {
+                                    {Array.from({ length: Math.ceil(boostGauge) }, (_, i) => {
                                         // คำนวณ animation delay เพื่อให้การ์ดทุกใบ sync กัน
                                         // ใช้ CSS ที่ sync กับเวลา global (ทุกการ์ดจะอยู่ phase เดียวกัน)
                                         const animationDuration = 4000; // 4s in ms
@@ -553,13 +567,98 @@ export default function UpgradeSimulator() {
                         </div>
                     )}
 
-                    {/* Boost Gauge Section */}
+                    {/* Boost Gauge Section - Card-based Material Selection */}
                     {
                         currentLevel < 13 && (
                             <div className="bg-[#F5F5DC] border-3 border-black p-4 mb-4">
                                 <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
-                                    <span>🧪</span> วัตถุดิบ (Boost Gauge)
+                                    <span>🃏</span> วัตถุดิบ (การ์ดนักเตะ)
                                 </h4>
+
+                                {/* Card Slots - Click to cycle: empty → full → half → empty */}
+                                <div className="flex justify-center gap-2 mb-2">
+                                    {[1, 2, 3, 4, 5].map((cardNum) => {
+                                        // Calculate the card's state (0, 0.5, or 1)
+                                        const prevCards = cardNum - 1;
+                                        const cardValue = Math.max(0, Math.min(1, boostGauge - prevCards));
+                                        const isFull = cardValue >= 1;
+                                        const isHalf = cardValue >= 0.5 && cardValue < 1;
+                                        const isEmpty = cardValue < 0.5;
+
+                                        const handleCardClick = () => {
+                                            if (isEmpty) {
+                                                setBoostGauge(cardNum);
+                                            } else if (isFull) {
+                                                setBoostGauge(cardNum - 0.5);
+                                            } else {
+                                                setBoostGauge(cardNum - 1);
+                                            }
+                                        };
+
+                                        return (
+                                            <button
+                                                key={cardNum}
+                                                onClick={handleCardClick}
+                                                className={`relative w-14 h-20 rounded border-3 transition-all cursor-pointer
+                                                    ${isFull
+                                                        ? 'border-black bg-gradient-to-b from-[#3B82F6] to-[#1D4ED8] shadow-[3px_3px_0px_#1a1a1a] scale-105'
+                                                        : isHalf
+                                                            ? 'border-black bg-gradient-to-b from-gray-300 to-gray-400 shadow-[2px_2px_0px_#1a1a1a]'
+                                                            : 'border-gray-400 bg-gradient-to-b from-gray-300 to-gray-400 shadow-[2px_2px_0px_#999] opacity-50 hover:opacity-75'
+                                                    }`}
+                                            >
+                                                {/* Card content wrapper with overflow hidden */}
+                                                <div className="absolute inset-0 overflow-hidden rounded">
+                                                    {/* Half fill effect */}
+                                                    {isHalf && (
+                                                        <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#3B82F6] to-[#60A5FA]"></div>
+                                                    )}
+                                                    {/* Shimmer effect for full cards */}
+                                                    {isFull && (
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                                                    )}
+                                                </div>
+                                                {/* Card Design */}
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                    {isFull ? (
+                                                        <>
+                                                            <span className="text-2xl">⚽</span>
+                                                            <span className="text-[10px] font-bold text-white mt-1">เต็ม</span>
+                                                        </>
+                                                    ) : isHalf ? (
+                                                        <>
+                                                            <span className="text-2xl">⚽</span>
+                                                            <span className="text-[10px] font-bold text-black mt-1">ครึ่ง</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="text-xl text-gray-500">?</span>
+                                                            <span className="text-[10px] font-bold text-gray-500 mt-1">ว่าง</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {/* Card number badge - OUTSIDE overflow container */}
+                                                <div className={`absolute -top-2 -right-2 w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold ${isFull ? 'bg-[#22C55E] border-black text-white' : isHalf ? 'bg-[#F59E0B] border-black text-white' : 'bg-gray-200 border-gray-400 text-gray-500'}`}>
+                                                    {cardNum}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Hint text */}
+                                <p className="text-center text-xs text-black/50 mb-3">
+                                    💡 คลิกซ้ำเพื่อเปลี่ยน: เต็ม → ครึ่ง → ว่าง
+                                </p>
+
+                                {/* Card Count Display */}
+                                <div className="text-center mb-3">
+                                    <span className="text-sm font-bold">
+                                        ใส่การ์ด: <span className={`text-lg ${boostGauge >= 5 ? 'text-[#22C55E]' : boostGauge >= 3 ? 'text-[#F59E0B]' : 'text-[#FF6B6B]'}`}>
+                                            {boostGauge % 1 === 0 ? boostGauge : boostGauge.toFixed(1)}
+                                        </span> / 5 ใบ
+                                    </span>
+                                </div>
 
                                 {/* Boost Gauge Visual Bar */}
                                 <div className="relative h-8 bg-gray-200 border-3 border-black mb-3 overflow-hidden">
@@ -571,7 +670,7 @@ export default function UpgradeSimulator() {
                                         }}
                                     />
                                     <div className="absolute inset-0 flex items-center justify-center font-bold text-black">
-                                        {boostGauge.toFixed(1)} / 5.0
+                                        {boostGauge % 1 === 0 ? boostGauge : boostGauge.toFixed(1)} / 5
                                     </div>
                                     {/* Grid lines */}
                                     <div className="absolute inset-0 flex">
@@ -581,41 +680,10 @@ export default function UpgradeSimulator() {
                                     </div>
                                 </div>
 
-                                {/* Slider */}
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="5"
-                                    step="0.1"
-                                    value={boostGauge}
-                                    onChange={(e) => setBoostGauge(parseFloat(e.target.value))}
-                                    className="w-full h-3 appearance-none bg-gray-300 border-2 border-black cursor-pointer"
-                                    style={{
-                                        background: `linear-gradient(to right, #22C55E ${(boostGauge / 5) * 100}%, #ddd ${(boostGauge / 5) * 100}%)`
-                                    }}
-                                />
-
-                                {/* Preset Buttons */}
-                                <div className="flex gap-2 mt-3">
-                                    {[1.0, 2.0, 3.0, 4.0, 5.0].map(preset => (
-                                        <button
-                                            key={preset}
-                                            onClick={() => setBoostGauge(preset)}
-                                            className={`flex-1 py-2 border-2 border-black font-bold text-sm transition-all
-                                            ${boostGauge === preset
-                                                    ? 'bg-[#22C55E] text-white shadow-none'
-                                                    : 'bg-white shadow-[2px_2px_0px_#1a1a1a] hover:shadow-[3px_3px_0px_#1a1a1a]'
-                                                }`}
-                                        >
-                                            {preset.toFixed(1)}
-                                        </button>
-                                    ))}
-                                </div>
-
                                 {/* Success Rate Display */}
-                                <div className="mt-4 grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="text-center p-3 bg-white border-2 border-black">
-                                        <div className="text-xs text-black/60">เต็มหลอด</div>
+                                        <div className="text-xs text-black/60">เต็ม 5 ใบ</div>
                                         <div className="text-xl font-bold text-[#808080]">
                                             {BASE_CHANCE_MAP[currentLevel] || 0}%
                                         </div>
@@ -723,6 +791,92 @@ export default function UpgradeSimulator() {
                                 เข้าใจแล้ว! 👍
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Disclaimer Popup Modal */}
+            {showDisclaimerPopup && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setShowDisclaimerPopup(false)}
+                    ></div>
+
+                    {/* Modal Content */}
+                    <div className="relative bg-white border-4 border-black shadow-[8px_8px_0px_#1a1a1a] p-6 max-w-lg mx-4 animate-bounce-in max-h-[85vh] overflow-y-auto">
+                        <div className="text-center mb-4">
+                            <div className="text-5xl mb-3">⚠️</div>
+                            <h3 className="text-xl font-bold">ข้อจำกัดของ Simulator นี้</h3>
+                        </div>
+
+                        {/* Warning Badge */}
+                        <div className="bg-[#FF6B6B] text-white border-3 border-black p-3 mb-4">
+                            <p className="text-sm font-bold text-center">
+                                🚨 นี่คือ &quot;การจำลองโดยประมาณ&quot; ไม่ใช่ค่าจากเกมจริง 100%
+                            </p>
+                        </div>
+
+                        {/* Content */}
+                        <div className="space-y-4 text-left">
+                            {/* Point 1 */}
+                            <div className="bg-[#F5F5DC] border-2 border-black p-3">
+                                <h4 className="font-bold text-sm mb-1 flex items-center gap-2">
+                                    <span>❌</span> ไม่มีสูตรที่เปิดเผยอย่างเป็นทางการ
+                                </h4>
+                                <p className="text-xs text-black/70">
+                                    Garena และ EA ไม่เคยเปิดเผยสูตรการคำนวณที่แท้จริงของระบบตีบวก ข้อมูลทั้งหมดมาจากการประมาณการของชุมชน
+                                </p>
+                            </div>
+
+                            {/* Point 2 */}
+                            <div className="bg-[#E8F5E9] border-2 border-black p-3">
+                                <h4 className="font-bold text-sm mb-1 flex items-center gap-2">
+                                    <span>📊</span> อัตราสำเร็จเป็นค่าประมาณ
+                                </h4>
+                                <p className="text-xs text-black/70">
+                                    ตัวเลขอัตราสำเร็จที่แสดงเป็นข้อมูลที่รวบรวมจากชุมชนผู้เล่น ไม่ใช่ค่าจริงจากเกม
+                                </p>
+                            </div>
+
+                            {/* Point 3 */}
+                            <div className="bg-[#E3F2FD] border-2 border-black p-3">
+                                <h4 className="font-bold text-sm mb-1 flex items-center gap-2">
+                                    <span>🧪</span> Boost Gauge เป็นการ Simplify
+                                </h4>
+                                <p className="text-xs text-black/70">
+                                    ในเกมจริงใช้ &quot;การ์ดนักเตะ&quot; เป็นวัตถุดิบ ซึ่งคุณภาพของการ์ดมีผลต่อโอกาสสำเร็จ ไม่ใช่ตัวเลข 0-5 แบบที่แสดงในนี้
+                                </p>
+                            </div>
+
+                            {/* Point 4 */}
+                            <div className="bg-[#FFF3E0] border-2 border-black p-3">
+                                <h4 className="font-bold text-sm mb-1 flex items-center gap-2">
+                                    <span>🎲</span> ระบบลดระดับอาจต่างจากเกมจริง
+                                </h4>
+                                <p className="text-xs text-black/70">
+                                    กฎการลดระดับเมื่อตีบวกล้มเหลวในเกมจริงอาจซับซ้อนกว่าที่จำลองในนี้
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Quote */}
+                        <div className="mt-4 p-3 bg-gray-100 border-l-4 border-black">
+                            <p className="text-xs italic text-black/60">
+                                &quot;เปอร์เซ็นต์อย่างเป็นทางการนั้นถูกต้อง... แต่สุดท้ายแล้ว ดวง เป็นปัจจัยสำคัญ&quot;
+                            </p>
+                        </div>
+
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setShowDisclaimerPopup(false)}
+                            className="w-full mt-4 py-3 font-bold uppercase border-3 border-black bg-[#FFDE00]
+                                shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]
+                                active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                        >
+                            เข้าใจแล้ว! 👍
+                        </button>
                     </div>
                 </div>
             )}

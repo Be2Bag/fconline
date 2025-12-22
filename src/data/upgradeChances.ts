@@ -85,12 +85,9 @@ export function getTotalOvrBonus(level: number): number {
  * +10+: สุ่มลด 4-6 ระดับ (catastrophic: ลด 6-8 ระดับ)
  */
 export function getLevelAfterFailure(currentLevel: number): number {
-    if (currentLevel <= 0) {
-        // +0 ไม่ลดระดับ (เพราะต่ำสุดแล้ว)
-        return 0;
-    } else if (currentLevel === 1) {
-        // +1 ล้มเหลวลดลงไป +0
-        return 0;
+    // +1 หรือต่ำกว่า ไม่ลดระดับ (ต่ำสุดคือ +1)
+    if (currentLevel <= 1) {
+        return 1;
     }
 
     // 10% โอกาสเกิด Catastrophic Drop (ลดหนักมาก) ทุกระดับ!
