@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import {
     UPGRADE_DATA,
@@ -71,6 +71,21 @@ export default function UpgradeSimulator() {
 
     // State สำหรับ Popup ข้อจำกัดความรับผิดชอบ (Disclaimer) - แสดงอัตโนมัติตอนเปิดหน้า
     const [showDisclaimerPopup, setShowDisclaimerPopup] = useState(true);
+
+    // State สำหรับ Keyboard navigation ในผลการค้นหา
+    const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const resultsContainerRef = useRef<HTMLDivElement>(null);
+    const highlightedItemRef = useRef<HTMLButtonElement>(null);
+
+    // Auto-scroll เมื่อเลื่อน highlight ด้วย keyboard
+    useEffect(() => {
+        if (highlightedItemRef.current && resultsContainerRef.current) {
+            highlightedItemRef.current.scrollIntoView({
+                block: 'nearest',
+                behavior: 'smooth'
+            });
+        }
+    }, [highlightedIndex]);
 
     // ค้นหานักเตะ
     const searchPlayers = useCallback(async (query: string) => {
@@ -470,6 +485,28 @@ export default function UpgradeSimulator() {
                             onChange={(e) => {
                                 setSearchQuery(e.target.value);
                                 searchPlayers(e.target.value);
+                                setHighlightedIndex(-1);
+                            }}
+                            onKeyDown={(e) => {
+                                if (searchResults.length === 0) return;
+
+                                if (e.key === 'ArrowDown') {
+                                    e.preventDefault();
+                                    setHighlightedIndex((prev) =>
+                                        prev < searchResults.length - 1 ? prev + 1 : 0
+                                    );
+                                } else if (e.key === 'ArrowUp') {
+                                    e.preventDefault();
+                                    setHighlightedIndex((prev) =>
+                                        prev > 0 ? prev - 1 : searchResults.length - 1
+                                    );
+                                } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+                                    e.preventDefault();
+                                    selectPlayer(searchResults[highlightedIndex]);
+                                } else if (e.key === 'Escape') {
+                                    setSearchResults([]);
+                                    setHighlightedIndex(-1);
+                                }
                             }}
                             placeholder="พิมพ์ชื่อนักเตะ..."
                             className="brutal-input w-full px-4 py-3 text-base"
@@ -480,12 +517,18 @@ export default function UpgradeSimulator() {
                             </div>
                         )}
                         {searchResults.length > 0 && (
-                            <div className="absolute z-20 w-full mt-2 bg-white border-4 border-black shadow-[4px_4px_0px_#1a1a1a] max-h-60 overflow-y-auto">
-                                {searchResults.map((player) => (
+                            <div
+                                ref={resultsContainerRef}
+                                className="absolute z-20 w-full mt-2 bg-white border-4 border-black shadow-[4px_4px_0px_#1a1a1a] max-h-60 overflow-y-auto"
+                            >
+                                {searchResults.map((player, index) => (
                                     <button
                                         key={player.id}
+                                        ref={highlightedIndex === index ? highlightedItemRef : null}
                                         onClick={() => selectPlayer(player)}
-                                        className="w-full px-4 py-3 text-left hover:bg-[#FFDE00] border-b-2 border-black last:border-b-0 transition-colors flex items-center gap-3"
+                                        onMouseEnter={() => setHighlightedIndex(index)}
+                                        className={`w-full px-4 py-3 text-left border-b-2 border-black last:border-b-0 transition-colors flex items-center gap-3
+                                            ${highlightedIndex === index ? 'bg-[#FFDE00]' : 'hover:bg-[#FFDE00]'}`}
                                     >
                                         <div className="w-10 h-10 bg-gray-100 border-2 border-black flex items-center justify-center text-xs font-bold overflow-hidden">
                                             {player.seasonImg ? (

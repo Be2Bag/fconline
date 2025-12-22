@@ -207,21 +207,18 @@ export default function BoxSimulator() {
                                     active:translate-x-[3px] active:translate-y-[3px] active:shadow-none
                                     transition-all text-left"
                             >
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div
-                                        className="p-2 border-3 border-black flex items-center justify-center"
-                                        style={{ backgroundColor: box.color }}
-                                    >
+                                <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                                    <div className="w-20 h-20 sm:w-24 sm:h-24 border-3 border-black overflow-hidden flex-shrink-0">
                                         <Image
                                             src={box.icon}
                                             alt={box.name}
-                                            width={64}
-                                            height={64}
-                                            className="object-contain"
+                                            width={96}
+                                            height={96}
+                                            className="object-cover w-full h-full"
                                         />
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-lg">{box.name}</h4>
+                                    <div className="text-center sm:text-left">
+                                        <h4 className="font-bold text-base sm:text-lg">{box.name}</h4>
                                         <p className="text-xs text-black/60">{box.description}</p>
                                     </div>
                                 </div>
@@ -501,21 +498,18 @@ export default function BoxSimulator() {
                             <span>📋</span> รายละเอียดกล่อง
                         </h3>
                         <div className="bg-[#F5F5DC] border-3 border-black p-4">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div
-                                    className="p-2 border-2 border-black flex items-center justify-center"
-                                    style={{ backgroundColor: selectedBox.color }}
-                                >
+                            <div className="flex flex-col sm:flex-row items-center gap-3 mb-3">
+                                <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-black overflow-hidden flex-shrink-0">
                                     <Image
                                         src={selectedBox.icon}
                                         alt={selectedBox.name}
-                                        width={48}
-                                        height={48}
-                                        className="object-contain"
+                                        width={64}
+                                        height={64}
+                                        className="object-cover w-full h-full"
                                     />
                                 </div>
-                                <div>
-                                    <h4 className="font-bold">{selectedBox.name}</h4>
+                                <div className="text-center sm:text-left">
+                                    <h4 className="font-bold text-sm sm:text-base">{selectedBox.name}</h4>
                                     <p className="text-xs text-black/60">{selectedBox.description}</p>
                                 </div>
                             </div>
