@@ -90,8 +90,6 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
         const manualMappings: { [key: string]: string } = {
             // FC Ambassador
             'FC': 'FCA',
-            // Legend of Europa - fo4-db ส่ง "EL" แต่ Nexon ใช้ "LE"
-            'EL': 'LE',
         };
 
         for (const [shortCode, fullCode] of Object.entries(manualMappings)) {
