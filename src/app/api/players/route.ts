@@ -90,6 +90,7 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
         const manualMappings: { [key: string]: string } = {
             // FC Ambassador
             'FC': 'FCA',
+            'JA': 'JVA',
         };
 
         for (const [shortCode, fullCode] of Object.entries(manualMappings)) {
@@ -101,42 +102,74 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
 
         // Direct URL mappings สำหรับ seasons ที่ไม่มีใน Nexon API หรือชื่อไม่ตรง
         // ใช้ Nexon CDN URL โดยตรง
+        // Direct URL mappings เรียงตาม id จากน้อยไปมาก
         const directUrlMappings: { [key: string]: { id: number; img: string } } = {
-            // ICON The Moment - fo4-db ส่ง "ICONTM"
+            // === ID 100-114: ICON Series ===
             'ICONTM': {
                 id: 100,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/icontm.png'
             },
-            // ICON The Moment Bound - fo4-db ส่ง "ICONTMB"
             'ICONTMB': {
                 id: 110,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/icontm_b.png'
             },
-            // ICONS MATCH - fo4-db ส่ง "ICONM"
             'ICONM': {
                 id: 111,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/filter/icon_m.png'
             },
-            // PRM (Prime) - ไม่มี official icon จาก Nexon
-            // ลบออกเพื่อให้ UI แสดง text "PRM" แทน icon
-
-            // K-League Best - fo4-db ส่ง "25KLB" / "24KLB" / "23KLB" แต่ Nexon ใช้ "25KB" / "24KB" / "23KB"
-            '25KLB': {
-                id: 853,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/25kb.png'
+            '25IMF': {
+                id: 114,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/25im_fb.png'
             },
-            '24KLB': {
-                id: 830,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/24klb.png'
+            // === ID 300-324: LIVE Series ===
+            'LIVE': {
+                id: 300,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/live.png'
             },
-            '23KLB': {
-                id: 805,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/23klb.png'
+            '17': {
+                id: 317,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/17.png'
             },
-            // K-League seasons (K + ปี)
+            '18': {
+                id: 318,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/18.png'
+            },
+            '19': {
+                id: 319,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/19.png'
+            },
+            '20': {
+                id: 320,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/20.png'
+            },
+            '21': {
+                id: 321,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/21.png'
+            },
+            '22': {
+                id: 322,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/22.png'
+            },
+            '23': {
+                id: 323,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/23.png'
+            },
+            '24': {
+                id: 324,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/24.png'
+            },
+            // === ID 502-517: Premium Live & K-League ===
+            '19A': {
+                id: 502,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/19pla.png'
+            },
             'K20': {
                 id: 504,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/20kl.png'
+            },
+            '20A': {
+                id: 506,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/20pla.png'
             },
             'K21': {
                 id: 507,
@@ -158,20 +191,22 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
                 id: 516,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/25kl.png'
             },
-            // 19 Autumn
-            '19A': {
-                id: 0,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/19pla.png'
+            // === ID 805-853: K-League Best & Special ===
+            '23KLB': {
+                id: 805,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/23klb.png'
             },
-            // LIVE seasons - ใช้เฉพาะถ้าไม่มี prefix ปี
-            'LIVE': {
-                id: 300,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/live.png'
+            '24KLB': {
+                id: 830,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/24klb.png'
             },
-            // 23 LIVE
-            '23': {
-                id: 323,
-                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/23.png'
+            'FSL': {
+                id: 850,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/25fsl.png'
+            },
+            '25KLB': {
+                id: 853,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/25kb.png'
             },
         };
 
