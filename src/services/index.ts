@@ -49,3 +49,17 @@ export {
     isHashId,
     getDirectImageUrl,
 } from './playerService';
+
+// Tax Service
+export {
+    MARKET_TAX_RATE,
+    PC_DISCOUNT_RATE,
+    CP_DISCOUNT_OPTIONS,
+    SVIP_DISCOUNT_OPTIONS,
+    calculateNetPrice,
+    calculateTotalSummary,
+    generateItemId,
+    createNewPlayerItem,
+    formatNumber,
+    formatShortNumber,
+} from './taxService';

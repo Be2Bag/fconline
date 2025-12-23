@@ -12,9 +12,9 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "OVR Calculator, ตีบวก & เปิดกล่อง Simulator | FC Online",
+  title: "OVR Calculator, ตีบวก, ภาษีตลาด & เปิดกล่อง Simulator | FC Online",
   description:
-    "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบแนะนำการอัพเกรดสเตตัส +2 ให้ OVR สูงสุด จำลองการตีบวกนักเตะพร้อมอัตราสำเร็จ และจำลองเปิดกล่อง BP / กุญแจ Champions Chest ตามอัตราดรอปจริง",
+    "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบแนะนำการอัพเกรดสเตตัส +2 ให้ OVR สูงสุด จำลองการตีบวกนักเตะพร้อมอัตราสำเร็จ คำนวณภาษีตลาด 40% พร้อมส่วนลด SVIP/PC/คูปอง และจำลองเปิดกล่อง BP / กุญแจ Champions Chest ตามอัตราดรอปจริง",
   keywords: [
     "FC Online",
     "OVR Calculator",
@@ -39,12 +39,22 @@ export const metadata: Metadata = {
     "อัตราดรอป",
     "Gacha Simulator",
     "จำลองเปิดกล่อง",
-    "FC Online Box"
+    "FC Online Box",
+    "ภาษีตลาด",
+    "Tax Calculator",
+    "คำนวณภาษี",
+    "ภาษี 40%",
+    "ส่วนลด SVIP",
+    "ส่วนลด PC",
+    "คูปองภาษี",
+    "ราคาสุทธิ",
+    "FC Online Tax",
+    "ขายนักเตะ"
   ],
   authors: [{ name: "FC Online Tools" }],
   openGraph: {
-    title: "OVR Calculator, ตีบวก & เปิดกล่อง Simulator | FC Online",
-    description: "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบตีบวกจำลอง แนะนำการอัพเกรด +2 และจำลองเปิดกล่อง BP / กุญแจ",
+    title: "OVR Calculator, ตีบวก, ภาษีตลาด & เปิดกล่อง Simulator | FC Online",
+    description: "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบตีบวกจำลอง แนะนำการอัพเกรด +2 จำลองเปิดกล่อง BP / กุญแจ และคำนวณภาษีตลาด 40%",
     type: "website",
     images: [
       {
@@ -57,8 +67,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "OVR Calculator, ตีบวก & เปิดกล่อง Simulator | FC Online",
-    description: "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบตีบวกจำลอง แนะนำการอัพเกรด +2 และจำลองเปิดกล่อง BP / กุญแจ",
+    title: "OVR Calculator, ตีบวก, ภาษีตลาด & เปิดกล่อง Simulator | FC Online",
+    description: "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบตีบวกจำลอง แนะนำการอัพเกรด +2 จำลองเปิดกล่อง BP / กุญแจ และคำนวณภาษีตลาด 40%",
     images: ["/og-image.png"],
   },
 };

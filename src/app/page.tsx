@@ -5,6 +5,7 @@ import Calculator from "@/components/Calculator";
 import BestPositionFinder from "@/components/BestPositionFinder";
 import UpgradeSimulator from "@/components/UpgradeSimulator";
 import BoxSimulator from "@/components/BoxSimulator";
+import TaxCalculator from "@/components/TaxCalculator";
 import Image from "next/image";
 
 // Declare gtag for TypeScript
@@ -14,7 +15,7 @@ declare global {
   }
 }
 
-type TabType = "calculator" | "position-finder" | "upgrade-simulator" | "box-simulator";
+type TabType = "calculator" | "position-finder" | "upgrade-simulator" | "box-simulator" | "tax-calculator";
 
 // Tab display names for analytics
 const TAB_NAMES: Record<TabType, string> = {
@@ -22,6 +23,7 @@ const TAB_NAMES: Record<TabType, string> = {
   "position-finder": "Best Position Finder",
   "upgrade-simulator": "Upgrade Simulator",
   "box-simulator": "Box Simulator",
+  "tax-calculator": "Tax Calculator",
 };
 
 export default function Home() {
@@ -187,8 +189,19 @@ export default function Home() {
               }`}
           >
             🎁 เปิดกล่อง
-            {activeTab === "box-simulator" && (
-              <span className="absolute -top-2 -right-2 text-xs bg-[#FFDE00] text-black px-1.5 py-0.5 border-2 border-black rotate-[12deg]">
+          </button>
+          <button
+            onClick={() => handleTabChange("tax-calculator")}
+            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
+              border-4 border-black transition-all relative
+              ${activeTab === "tax-calculator"
+                ? "bg-[#FFD700] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
+                : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
+              }`}
+          >
+            💰 ภาษีตลาด
+            {activeTab === "tax-calculator" && (
+              <span className="absolute -top-2 -right-2 text-xs bg-[#7BF1A8] text-black px-1.5 py-0.5 border-2 border-black rotate-[12deg]">
                 NEW
               </span>
             )}
@@ -202,6 +215,7 @@ export default function Home() {
         {activeTab === "position-finder" && <BestPositionFinder />}
         {activeTab === "upgrade-simulator" && <UpgradeSimulator />}
         {activeTab === "box-simulator" && <BoxSimulator />}
+        {activeTab === "tax-calculator" && <TaxCalculator />}
       </main>
 
       {/* Footer */}

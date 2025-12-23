@@ -45,3 +45,13 @@ export type {
     EfficientUpgradeResult,
     PositionAnalysisResult,
 } from './ovr';
+
+// Tax calculator types
+export type {
+    CPDiscountRate,
+    SVIPDiscountRate,
+    TaxPlayerItem,
+    TaxGlobalSettings,
+    TaxCalculationResult,
+    TaxTotalSummary,
+} from './tax';
