@@ -1,27 +1,22 @@
-// API Route: Track active users using in-memory storage
-// ใช้ heartbeat mechanism เพื่อติดตามผู้ใช้งาน
+// API Route: Track active users using Upstash Redis
+// ใช้ Redis เพื่อให้ทำงานได้ถูกต้องบน Vercel Serverless
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Redis } from '@upstash/redis';
 
-// In-memory storage for active sessions
-// Key: sessionId, Value: last heartbeat timestamp
-const activeSessions = new Map<string, number>();
+// Initialize Redis client
+const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
 
 // Session timeout: 15 seconds (if no heartbeat, consider inactive)
-const SESSION_TIMEOUT = 15000;
+const SESSION_TIMEOUT_SECONDS = 15;
 
-// Clean up expired sessions
-function cleanupExpiredSessions() {
-    const now = Date.now();
-    for (const [sessionId, timestamp] of activeSessions.entries()) {
-        if (now - timestamp > SESSION_TIMEOUT) {
-            activeSessions.delete(sessionId);
-        }
-    }
-}
+// Redis key for storing active sessions
+const SESSIONS_KEY = 'active_sessions';
 
 // POST: Register/update heartbeat for a session
-// GET: Get current active user count
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
@@ -31,27 +26,45 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'sessionId required' }, { status: 400 });
         }
 
-        // Update or create session
-        activeSessions.set(sessionId, Date.now());
+        // Use Redis pipeline for atomic operations
+        const now = Date.now();
+        const expireTime = now - (SESSION_TIMEOUT_SECONDS * 1000);
 
-        // Clean up expired sessions
-        cleanupExpiredSessions();
+        // Add/update session with current timestamp as score
+        // ZADD with score = current timestamp
+        await redis.zadd(SESSIONS_KEY, { score: now, member: sessionId });
 
-        // Return current count
+        // Remove expired sessions (score < expireTime)
+        await redis.zremrangebyscore(SESSIONS_KEY, 0, expireTime);
+
+        // Count active sessions
+        const count = await redis.zcard(SESSIONS_KEY);
+
         return NextResponse.json({
-            count: activeSessions.size,
+            count,
             sessionId
         });
-    } catch {
-        return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    } catch (error) {
+        console.error('Redis error:', error);
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
 
+// GET: Get current active user count
 export async function GET() {
-    // Clean up expired sessions before counting
-    cleanupExpiredSessions();
+    try {
+        const now = Date.now();
+        const expireTime = now - (SESSION_TIMEOUT_SECONDS * 1000);
 
-    return NextResponse.json({
-        count: activeSessions.size
-    });
+        // Remove expired sessions first
+        await redis.zremrangebyscore(SESSIONS_KEY, 0, expireTime);
+
+        // Count remaining active sessions
+        const count = await redis.zcard(SESSIONS_KEY);
+
+        return NextResponse.json({ count });
+    } catch (error) {
+        console.error('Redis error:', error);
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    }
 }

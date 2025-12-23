@@ -23,6 +23,7 @@ export default function ActiveUsersSticker() {
     const [activeCount, setActiveCount] = useState<number>(0);
     const [isAnimating, setIsAnimating] = useState(false);
     const [userId, setUserId] = useState<string>('');
+    const [hasError, setHasError] = useState(false);
 
     // Send heartbeat to server
     const sendHeartbeat = useCallback(async () => {
@@ -46,9 +47,13 @@ export default function ActiveUsersSticker() {
                 }
 
                 setActiveCount(newCount);
+                setHasError(false); // Reset error state on success
+            } else {
+                setHasError(true); // API returned error status
             }
         } catch (error) {
             console.error('Failed to send heartbeat:', error);
+            setHasError(true); // Network or Redis error
         }
     }, [userId, activeCount]);
 
@@ -84,15 +89,15 @@ export default function ActiveUsersSticker() {
             >
                 {/* Animated dot */}
                 <div className="relative">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <div className="absolute inset-0 w-3 h-3 bg-green-400 rounded-full animate-ping opacity-75"></div>
+                    <div className={`w-3 h-3 rounded-full animate-pulse ${hasError ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                    <div className={`absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-75 ${hasError ? 'bg-red-400' : 'bg-green-400'}`}></div>
                 </div>
 
                 {/* User count */}
                 <div className="flex items-center gap-1.5">
                     <span className="text-lg">👥</span>
-                    <span className={`font-bold text-sm transition-all ${isAnimating ? 'text-green-600 scale-125' : ''}`}>
-                        {activeCount}
+                    <span className={`font-bold text-sm transition-all ${hasError ? 'text-red-600' : ''} ${isAnimating ? 'text-green-600 scale-125' : ''}`}>
+                        {hasError ? 'x' : activeCount}
                     </span>
                     <span className="text-xs text-black/70">คนออนไลน์</span>
                 </div>
