@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Prompt } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import ActiveUsersSticker from "@/components/ActiveUsersSticker";
 
@@ -69,6 +70,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th">
+      {/* Google Analytics */}
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=G-QMXK0T0SKG"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-QMXK0T0SKG');
+        `}
+      </Script>
       <body className={`${prompt.variable} font-sans antialiased football-bg`}>
         {children}
         <ActiveUsersSticker />

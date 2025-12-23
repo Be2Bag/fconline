@@ -1,17 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Calculator from "@/components/Calculator";
 import BestPositionFinder from "@/components/BestPositionFinder";
 import UpgradeSimulator from "@/components/UpgradeSimulator";
 import BoxSimulator from "@/components/BoxSimulator";
 import Image from "next/image";
 
+// Declare gtag for TypeScript
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 type TabType = "calculator" | "position-finder" | "upgrade-simulator" | "box-simulator";
+
+// Tab display names for analytics
+const TAB_NAMES: Record<TabType, string> = {
+  "calculator": "OVR Calculator",
+  "position-finder": "Best Position Finder",
+  "upgrade-simulator": "Upgrade Simulator",
+  "box-simulator": "Box Simulator",
+};
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>("calculator");
   const [showCoffee, setShowCoffee] = useState(false);
+
+  // Track tab change in Google Analytics
+  const trackTabChange = useCallback((tab: TabType) => {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "page_view", {
+        page_title: TAB_NAMES[tab],
+        page_location: `${window.location.origin}/#${tab}`,
+        page_path: `/#${tab}`,
+      });
+    }
+  }, []);
+
+  // Handle tab change with tracking
+  const handleTabChange = useCallback((tab: TabType) => {
+    setActiveTab(tab);
+    trackTabChange(tab);
+  }, [trackTabChange]);
 
   return (
     <div className="min-h-screen noise-bg relative overflow-hidden">
@@ -103,7 +135,7 @@ export default function Home() {
       <div className="max-w-6xl mx-auto px-3 md:px-4 mb-4 md:mb-6 relative">
         <div className="flex flex-wrap gap-2 md:gap-3">
           <button
-            onClick={() => setActiveTab("calculator")}
+            onClick={() => handleTabChange("calculator")}
             className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
               border-4 border-black transition-all relative
               ${activeTab === "calculator"
@@ -119,7 +151,7 @@ export default function Home() {
             )}
           </button>
           <button
-            onClick={() => setActiveTab("position-finder")}
+            onClick={() => handleTabChange("position-finder")}
             className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
               border-4 border-black transition-all relative
               ${activeTab === "position-finder"
@@ -135,7 +167,7 @@ export default function Home() {
             )}
           </button>
           <button
-            onClick={() => setActiveTab("upgrade-simulator")}
+            onClick={() => handleTabChange("upgrade-simulator")}
             className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
               border-4 border-black transition-all relative
               ${activeTab === "upgrade-simulator"
@@ -146,7 +178,7 @@ export default function Home() {
             ⚡ ตีบวก
           </button>
           <button
-            onClick={() => setActiveTab("box-simulator")}
+            onClick={() => handleTabChange("box-simulator")}
             className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
               border-4 border-black transition-all relative
               ${activeTab === "box-simulator"
