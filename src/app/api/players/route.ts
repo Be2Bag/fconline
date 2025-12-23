@@ -8,7 +8,7 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 ชั่วโมง
 
 // สร้าง client สำหรับเชื่อมต่อ fo4-db API (region: Vietnam)
 const client = new Client({
-    region: Regions.VN,
+    region: Regions.TH,
 });
 
 // Cache สำหรับ Season metadata พร้อม TTL
@@ -88,9 +88,10 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
         // เพิ่ม manual mappings สำหรับ seasons พิเศษที่อาจไม่ match
         // fo4-db ส่งชื่อที่แตกต่างจาก Nexon API
         const manualMappings: { [key: string]: string } = {
-            // FC Ambassador
+            // Ambassadors
             'FC': 'FCA',
             'JA': 'JVA',
+            'RMFC': 'RMCF',
         };
 
         for (const [shortCode, fullCode] of Object.entries(manualMappings)) {
@@ -109,6 +110,10 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
                 id: 100,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/icontm.png'
             },
+            'ICON': {
+                id: 101,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/icon.png'
+            },
             'ICONTMB': {
                 id: 110,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/icontm_b.png'
@@ -120,6 +125,11 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
             '25IMF': {
                 id: 114,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/25im_fb.png'
+            },
+            // === ID 274: Real Madrid Ambassador ===
+            'RMFC': {
+                id: 274,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/rmcf.png'
             },
             // === ID 300-324: LIVE Series ===
             'LIVE': {
@@ -158,10 +168,22 @@ async function loadSeasonMetadata(): Promise<Map<string, { id: number; img: stri
                 id: 324,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/24.png'
             },
-            // === ID 502-517: Premium Live & K-League ===
+            // === ID 500-517: Premium Live & K-League ===
+            '18A': {
+                id: 500,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/plc.png'
+            },
+            '18S': {
+                id: 501,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/18pls.png'
+            },
             '19A': {
                 id: 502,
                 img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/19pla.png'
+            },
+            '19S': {
+                id: 503,
+                img: 'https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/19pls.png'
             },
             'K20': {
                 id: 504,
