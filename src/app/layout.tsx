@@ -12,6 +12,7 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://fconline.vercel.app"),
   title: "OVR Calculator, ตีบวก, ภาษีตลาด & เปิดกล่อง Simulator | FC Online",
   description:
     "คำนวณค่า OVR นักเตะ FC Online พร้อมระบบแนะนำการอัพเกรดสเตตัส +2 ให้ OVR สูงสุด จำลองการตีบวกนักเตะพร้อมอัตราสำเร็จ คำนวณภาษีตลาด 40% พร้อมส่วนลด SVIP/PC/คูปอง และจำลองเปิดกล่อง BP / กุญแจ Champions Chest ตามอัตราดรอปจริง",

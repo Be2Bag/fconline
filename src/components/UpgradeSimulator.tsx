@@ -271,6 +271,7 @@ export default function UpgradeSimulator() {
                                                     width={40}
                                                     height={40}
                                                     className="object-contain"
+                                                    style={{ height: 'auto' }}
                                                 />
                                             ) : (
                                                 <span className="text-xs font-bold text-white">{selectedPlayer.season}</span>
@@ -286,6 +287,7 @@ export default function UpgradeSimulator() {
                                             width={42}
                                             height={18}
                                             className="object-contain"
+                                            style={{ height: 'auto' }}
                                         />
                                     </div>
 
@@ -511,7 +513,7 @@ export default function UpgradeSimulator() {
                                     >
                                         <div className="w-10 h-10 bg-gray-100 border-2 border-black flex items-center justify-center text-xs font-bold overflow-hidden">
                                             {player.seasonImg ? (
-                                                <Image src={player.seasonImg} alt={player.season || 'Season'} width={40} height={40} className="object-contain" />
+                                                <Image src={player.seasonImg} alt={player.season || 'Season'} width={40} height={40} className="object-contain" style={{ height: 'auto' }} />
                                             ) : (
                                                 <span>{player.season}</span>
                                             )}
