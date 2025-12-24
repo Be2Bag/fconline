@@ -48,8 +48,8 @@ export default function UpgradeSimulator() {
     // State สำหรับ Popup แจ้งเตือน
     const [showWarningPopup, setShowWarningPopup] = useState(false);
 
-    // State สำหรับ Popup ข้อจำกัดความรับผิดชอบ (Disclaimer) - แสดงอัตโนมัติตอนเปิดหน้า
-    const [showDisclaimerPopup, setShowDisclaimerPopup] = useState(true);
+    // State สำหรับ Popup ข้อจำกัดความรับผิดชอบ (Disclaimer) - ไม่แสดงอัตโนมัติ
+    const [showDisclaimerPopup, setShowDisclaimerPopup] = useState(false);
 
     // State สำหรับ Keyboard navigation ในผลการค้นหา
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -207,7 +207,7 @@ export default function UpgradeSimulator() {
                         className="px-3 py-2 bg-[#FF6B6B] text-white font-bold text-xs uppercase border-3 border-black
                             shadow-[3px_3px_0px_#1a1a1a] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_#1a1a1a]
                             active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all
-                            flex items-center gap-1"
+                            flex items-center gap-1 cursor-pointer animate-pulse hover:animate-none"
                     >
                         ⚠️ ข้อจำกัด
                     </button>
