@@ -55,3 +55,10 @@ export type {
     TaxCalculationResult,
     TaxTotalSummary,
 } from './tax';
+
+// Chat types
+export type {
+    ChatMessage,
+    SendMessagePayload,
+    ChatResponse,
+} from './chat';
