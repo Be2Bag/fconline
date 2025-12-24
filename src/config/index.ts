@@ -17,3 +17,6 @@ export type { BoxConfigType } from './box.config';
 
 export { API_CONFIG } from './api.config';
 export type { ApiConfigType } from './api.config';
+
+export { TAX_CONFIG } from './tax.config';
+export type { TaxConfigType } from './tax.config';

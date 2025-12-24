@@ -15,30 +15,13 @@ import type {
     CPDiscountRate,
     SVIPDiscountRate,
 } from '@/types/tax';
+import { TAX_CONFIG } from '@/config';
 
-/** อัตราภาษีตลาดคงที่ 40% */
-export const MARKET_TAX_RATE = 0.4;
-
-/** ส่วนลด PC คงที่ 10% */
-export const PC_DISCOUNT_RATE = 0.1;
-
-/** ตัวเลือก CP discount */
-export const CP_DISCOUNT_OPTIONS: { value: CPDiscountRate; label: string }[] = [
-    { value: 0, label: 'ไม่ใช้' },
-    { value: 0.10, label: 'CP 10%' },
-    { value: 0.20, label: 'CP 20%' },
-    { value: 0.25, label: 'CP 25%' },
-    { value: 0.30, label: 'CP 30%' },
-    { value: 0.35, label: 'CP 35%' },
-    { value: 0.40, label: 'CP 40%' },
-];
-
-/** ตัวเลือก SVIP discount */
-export const SVIP_DISCOUNT_OPTIONS: { value: SVIPDiscountRate; label: string }[] = [
-    { value: 0, label: 'ไม่ใช้' },
-    { value: 0.10, label: 'SVIP 10%' },
-    { value: 0.20, label: 'SVIP 20%' },
-];
+// Re-export config values for backwards compatibility
+export const MARKET_TAX_RATE = TAX_CONFIG.MARKET_TAX_RATE;
+export const PC_DISCOUNT_RATE = TAX_CONFIG.PC_DISCOUNT_RATE;
+export const CP_DISCOUNT_OPTIONS = TAX_CONFIG.CP_DISCOUNT_OPTIONS;
+export const SVIP_DISCOUNT_OPTIONS = TAX_CONFIG.SVIP_DISCOUNT_OPTIONS;
 
 /**
  * คำนวณราคาสุทธิสำหรับรายการเดียว
@@ -120,9 +103,7 @@ export function generateItemId(): string {
 export function createNewPlayerItem(): TaxPlayerItem {
     return {
         id: generateItemId(),
-        name: '',
-        price: 0,
-        cpDiscount: 0,
+        ...TAX_CONFIG.DEFAULT_PLAYER,
     };
 }
 
@@ -146,12 +127,12 @@ export function formatShortNumber(num: number): string {
     // ถ้าเป็น 0 ให้แสดง 0B
     if (num === 0) return '0B';
 
-    const billions = num / 1_000_000_000;
+    const billions = num / TAX_CONFIG.BILLION_UNIT;
 
     // แสดงทศนิยมตามค่าจริง ไม่เกิน 3 ตำแหน่ง (ตัด trailing zeros)
     const formatted = billions.toLocaleString('en-US', {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 3,
+        maximumFractionDigits: TAX_CONFIG.MAX_DECIMAL_PLACES,
     });
     return `${formatted}B`;
 }
@@ -163,7 +144,7 @@ export function formatShortNumber(num: number): string {
  */
 export function formatBInput(num: number): string {
     if (num === 0) return '';
-    const billions = num / 1_000_000_000;
+    const billions = num / TAX_CONFIG.BILLION_UNIT;
     // ตัดเลข 0 ท้ายออก
     return billions.toString();
 }
@@ -177,5 +158,5 @@ export function formatBInput(num: number): string {
 export function parseBInput(value: string): number {
     const parsed = parseFloat(value);
     if (isNaN(parsed)) return 0;
-    return Math.max(0, parsed) * 1_000_000_000;
+    return Math.max(0, parsed) * TAX_CONFIG.BILLION_UNIT;
 }

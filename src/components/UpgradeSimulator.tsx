@@ -2,36 +2,15 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
+import type { Player, UpgradeStats } from "@/types";
+import { UPGRADE_DATA, LEVEL_COLORS, BASE_CHANCE_MAP } from "@/data";
 import {
-    UPGRADE_DATA,
-    LEVEL_COLORS,
     getUpgradeInfo,
     getTotalOvrBonus,
     getLevelAfterFailure,
     calculateSuccessRate,
-    simulateUpgradeWithBoost,
-    BASE_CHANCE_MAP,
-} from "@/data/upgradeChances";
-
-// ข้อมูลนักเตะที่ค้นหาได้
-interface Player {
-    name: string;
-    id: string;
-    spid?: string; // Player unique ID สำหรับดึงรูป
-    position: string;
-    team: string;
-    season: string;
-    seasonImg?: string;
-    ovr?: number; // OVR เริ่มต้นของนักเตะ
-}
-
-// สถิติการตีบวก
-interface UpgradeStats {
-    attempts: number;
-    successes: number;
-    failures: number;
-    highestLevel: number;
-}
+    simulateUpgrade,
+} from "@/services";
 
 export default function UpgradeSimulator() {
     // State สำหรับค้นหานักเตะ
@@ -166,18 +145,17 @@ export default function UpgradeSimulator() {
         // Delay เล็กน้อยเพื่อ animation
         await new Promise((resolve) => setTimeout(resolve, 300));
 
-        const success = simulateUpgradeWithBoost(currentLevel, boostGauge);
+        const result = simulateUpgrade(currentLevel, boostGauge);
 
-        if (success) {
+        if (result.success) {
             // สำเร็จ - เพิ่มระดับ
-            const newLevel = currentLevel + 1;
-            setCurrentLevel(newLevel);
+            setCurrentLevel(result.newLevel);
             setUpgradeResult("success");
             setStats((prev) => ({
                 ...prev,
                 attempts: prev.attempts + 1,
                 successes: prev.successes + 1,
-                highestLevel: Math.max(prev.highestLevel, newLevel),
+                highestLevel: Math.max(prev.highestLevel, result.newLevel),
             }));
         } else {
             // ล้มเหลว
@@ -191,8 +169,8 @@ export default function UpgradeSimulator() {
                 }));
             } else {
                 // ไม่มีการป้องกัน - ลดระดับตามกฎ
-                const newLevel = getLevelAfterFailure(currentLevel);
-                setCurrentLevel(newLevel);
+                const failResult = getLevelAfterFailure(currentLevel);
+                setCurrentLevel(failResult.newLevel);
                 setUpgradeResult("fail");
                 setStats((prev) => ({
                     ...prev,
@@ -208,6 +186,7 @@ export default function UpgradeSimulator() {
             setIsUpgrading(false);
         }, 800);
     };
+
 
     // คำนวณ OVR ปัจจุบัน
     const currentOvr = baseOvr + getTotalOvrBonus(currentLevel);

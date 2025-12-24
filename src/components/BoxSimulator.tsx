@@ -2,33 +2,10 @@
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
-import {
-    BoxType,
-    BoxReward,
-    ALL_BOXES,
-    RARITY_COLORS,
-    RARITY_LABELS,
-    formatBP,
-    openBox,
-    openMultipleBoxes,
-} from "@/data/boxData";
-
-// ผลลัพธ์การเปิดกล่อง
-interface OpenResult {
-    id: string;
-    reward: BoxReward;
-    actualValue: number;
-    timestamp: number;
-}
-
-// สถิติการเปิดกล่อง
-interface BoxStats {
-    totalOpened: number;
-    totalEarned: number;
-    totalFCSpent: number;  // FC ที่เสียไป
-    bestReward: OpenResult | null;
-    rarityCount: Record<BoxReward['rarity'], number>;
-}
+import type { BoxType, BoxReward, OpenResult, BoxStats } from "@/types";
+import { ALL_BOXES } from "@/data";
+import { RARITY_COLORS, RARITY_LABELS } from "@/constants";
+import { formatBP, openBox, openMultipleBoxes } from "@/services";
 
 export default function BoxSimulator() {
     // State
