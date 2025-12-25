@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Prompt } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import ActiveUsersSticker from "@/components/ActiveUsersSticker";
+// TEMPORARILY DISABLED - Upstash Redis limit exceeded (500k/month)
+// import ActiveUsersSticker from "@/components/ActiveUsersSticker";
 
 const prompt = Prompt({
   weight: ["300", "400", "500", "600", "700"],
@@ -96,7 +97,9 @@ export default function RootLayout({
       </Script>
       <body className={`${prompt.variable} font-sans antialiased football-bg`}>
         {children}
+        {/* TEMPORARILY DISABLED - Upstash Redis limit exceeded
         <ActiveUsersSticker />
+        */}
       </body>
     </html>
   );
