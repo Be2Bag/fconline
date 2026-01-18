@@ -30,6 +30,53 @@ export function formatBP(value: number): string {
 }
 
 /**
+ * Parse วันหมดอายุจาก format '2026.02.01.23H59M'
+ * 
+ * @param expiresAt - string ในรูปแบบ 'YYYY.MM.DD.HHhMMm'
+ * @returns Date object หรือ null ถ้า parse ไม่ได้
+ */
+export function parseExpiresAt(expiresAt: string): Date | null {
+    // Format: '2026.02.01.23H59M'
+    const match = expiresAt.match(/^(\d{4})\.(\d{2})\.(\d{2})\.(\d{2})H(\d{2})M$/);
+    if (!match) return null;
+
+    const [, year, month, day, hour, minute] = match;
+    // Note: month is 0-indexed in JavaScript Date
+    return new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(hour),
+        parseInt(minute)
+    );
+}
+
+/**
+ * เช็คว่ากล่องหมดอายุหรือยัง
+ * 
+ * @param box - ข้อมูลกล่อง
+ * @returns true ถ้าหมดอายุแล้ว, false ถ้ายังไม่หมดอายุหรือไม่มีวันหมดอายุ
+ */
+export function isBoxExpired(box: BoxType): boolean {
+    if (!box.expiresAt) return false;
+
+    const expiryDate = parseExpiresAt(box.expiresAt);
+    if (!expiryDate) return false;
+
+    return new Date() > expiryDate;
+}
+
+/**
+ * กรองกล่องที่ยังไม่หมดอายุ
+ * 
+ * @param boxes - Array ของกล่องทั้งหมด
+ * @returns Array ของกล่องที่ยังไม่หมดอายุ
+ */
+export function getActiveBoxes(boxes: BoxType[]): BoxType[] {
+    return boxes.filter(box => !isBoxExpired(box));
+}
+
+/**
  * สุ่มเลือกรางวัลจากกล่องตามน้ำหนัก probability
  * 
  * @param box - ข้อมูลกล่อง

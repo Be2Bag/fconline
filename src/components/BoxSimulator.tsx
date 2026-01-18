@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import type { BoxType, BoxReward, OpenResult, BoxStats } from "@/types";
 import { ALL_BOXES } from "@/data";
 import { RARITY_COLORS, RARITY_LABELS } from "@/constants";
-import { formatBP, openBox, openMultipleBoxes } from "@/services";
+import { formatBP, openBox, openMultipleBoxes, getActiveBoxes } from "@/services";
 
 export default function BoxSimulator() {
     // State
@@ -29,6 +29,9 @@ export default function BoxSimulator() {
     const [showMultiResults, setShowMultiResults] = useState<OpenResult[]>([]);
     const [customCount, setCustomCount] = useState<string>('');
     const [showDisclaimer, setShowDisclaimer] = useState(false);
+
+    // กรองเฉพาะกล่องที่ยังไม่หมดอายุ
+    const activeBoxes = useMemo(() => getActiveBoxes(ALL_BOXES), []);
 
     // Helper: Format value based on box type
     const formatValue = (value: number): string => {
@@ -172,7 +175,7 @@ export default function BoxSimulator() {
                         <span>📦</span> เลือกกล่องที่ต้องการเปิด
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {ALL_BOXES.map((box) => (
+                        {activeBoxes.map((box) => (
                             <button
                                 key={box.id}
                                 onClick={() => {
@@ -210,6 +213,15 @@ export default function BoxSimulator() {
                                 </div>
                             </button>
                         ))}
+                        {activeBoxes.length === 0 && (
+                            <div className="col-span-full p-8 border-4 border-dashed border-black/30 bg-gray-100 text-center">
+                                <div className="text-4xl mb-4">📭</div>
+                                <div className="font-bold text-lg mb-2">ไม่มีกล่องให้เปิดในขณะนี้</div>
+                                <div className="text-sm text-black/60">
+                                    กล่องทั้งหมดหมดอายุแล้ว กรุณารอกล่องใหม่
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

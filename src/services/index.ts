@@ -22,6 +22,9 @@ export {
 // Box Service
 export {
     formatBP,
+    parseExpiresAt,
+    isBoxExpired,
+    getActiveBoxes,
     openBox,
     openMultipleBoxes,
     calculateTotalValue,
