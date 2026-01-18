@@ -192,6 +192,7 @@ export default function BoxSimulator() {
                                             width={96}
                                             height={96}
                                             className="object-cover w-full h-full"
+                                            unoptimized
                                         />
                                     </div>
                                     <div className="text-center sm:text-left">
@@ -261,6 +262,7 @@ export default function BoxSimulator() {
                                     width={160}
                                     height={160}
                                     className="object-contain w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40"
+                                    unoptimized
                                 />
                             </div>
 
@@ -483,6 +485,7 @@ export default function BoxSimulator() {
                                         width={64}
                                         height={64}
                                         className="object-cover w-full h-full"
+                                        unoptimized
                                     />
                                 </div>
                                 <div className="text-center sm:text-left">
