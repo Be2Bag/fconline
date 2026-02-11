@@ -15,8 +15,8 @@ export {
 
 // Box data
 export {
-    BP_BOX_JAN_2026,
-    CHAMPIONS_CHEST_JAN_2026,
+    BP_BOX_FEB_2026,
+    CHAMPIONS_CHEST_FEB_2026,
     ALL_BOXES,
 } from './boxData';
 
