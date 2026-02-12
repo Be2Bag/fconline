@@ -168,7 +168,7 @@ export default function Home() {
               </span>
             )}
           </button>
-          <button
+          {/* <button
             onClick={() => handleTabChange("upgrade-simulator")}
             className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
               border-4 border-black transition-all relative
@@ -178,7 +178,7 @@ export default function Home() {
               }`}
           >
             ⚡ ตีบวก
-          </button>
+          </button> */}
           <button
             onClick={() => handleTabChange("box-simulator")}
             className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
@@ -213,7 +213,7 @@ export default function Home() {
       <main className="px-3 md:px-4 pb-8 md:pb-12 relative z-10">
         {activeTab === "calculator" && <Calculator />}
         {activeTab === "position-finder" && <BestPositionFinder />}
-        {activeTab === "upgrade-simulator" && <UpgradeSimulator />}
+        {/* {activeTab === "upgrade-simulator" && <UpgradeSimulator />} */}
         {activeTab === "box-simulator" && <BoxSimulator />}
         {activeTab === "tax-calculator" && <TaxCalculator />}
       </main>
