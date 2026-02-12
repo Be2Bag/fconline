@@ -86,6 +86,29 @@ describe('taxService', () => {
         });
     });
 
+
+    it('should calculate correctly with 45% CP discount', () => {
+        const highDiscountItem: TaxPlayerItem = {
+            ...sampleItem,
+            cpDiscount: 0.45,
+        };
+        const noOtherDiscountSettings: TaxGlobalSettings = {
+            svipDiscount: 0,
+            pcEnabled: false,
+        };
+
+        const result = calculateNetPrice(highDiscountItem, noOtherDiscountSettings);
+
+        // Price = 100B
+        // Tax = 40% = 40B
+        // Discount rate = 45%
+        // Discount amount = 40B * 45% = 18B
+        // Net = (100B - 40B) + 18B = 78B
+        expect(result.netPrice).toBe(78000000000);
+        expect(result.discountBreakdown.cp).toBe(18000000000);
+    });
+
+
     describe('calculateTotalSummary', () => {
         it('should sum multiple items correctly', () => {
             const items: TaxPlayerItem[] = [
