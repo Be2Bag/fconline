@@ -28,6 +28,7 @@ export const TAX_CONFIG = {
         { value: 0.30 as CPDiscountRate, label: 'CP 30%' },
         { value: 0.35 as CPDiscountRate, label: 'CP 35%' },
         { value: 0.40 as CPDiscountRate, label: 'CP 40%' },
+        { value: 0.45 as CPDiscountRate, label: 'CP 45%' },
     ],
 
     /** ตัวเลือก SVIP discount */
