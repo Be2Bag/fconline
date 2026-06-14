@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import type {
     TaxPlayerItem,
     TaxGlobalSettings,
@@ -19,17 +19,129 @@ import {
     formatBInput,
 } from "@/services/taxService";
 
+export const TAX_CALCULATOR_STORAGE_KEY = "fc_online_tax_calculator_state";
+
+const TAX_CALCULATOR_STORAGE_VERSION = 1;
+
+interface TaxCalculatorState {
+    globalSettings: TaxGlobalSettings;
+    players: TaxPlayerItem[];
+}
+
+interface CachedTaxCalculatorState extends TaxCalculatorState {
+    version: typeof TAX_CALCULATOR_STORAGE_VERSION;
+}
+
+const cpDiscountValues = new Set<number>(
+    CP_DISCOUNT_OPTIONS.map((option) => option.value)
+);
+const svipDiscountValues = new Set<number>(
+    SVIP_DISCOUNT_OPTIONS.map((option) => option.value)
+);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+function isValidGlobalSettings(value: unknown): value is TaxGlobalSettings {
+    if (!isRecord(value)) return false;
+
+    return (
+        svipDiscountValues.has(value.svipDiscount as number) &&
+        typeof value.pcEnabled === "boolean"
+    );
+}
+
+function isValidPlayerItem(value: unknown): value is TaxPlayerItem {
+    if (!isRecord(value)) return false;
+
+    return (
+        typeof value.id === "string" &&
+        typeof value.name === "string" &&
+        typeof value.price === "number" &&
+        Number.isFinite(value.price) &&
+        value.price >= 0 &&
+        cpDiscountValues.has(value.cpDiscount as number)
+    );
+}
+
+function createDefaultTaxCalculatorState(): TaxCalculatorState {
+    return {
+        globalSettings: {
+            svipDiscount: 0,
+            pcEnabled: false,
+        },
+        players: [createNewPlayerItem()],
+    };
+}
+
+function readCachedTaxCalculatorState(): TaxCalculatorState | null {
+    if (typeof window === "undefined") return null;
+
+    const cachedValue = window.localStorage.getItem(TAX_CALCULATOR_STORAGE_KEY);
+    if (!cachedValue) return null;
+
+    try {
+        const parsed: unknown = JSON.parse(cachedValue);
+        if (!isRecord(parsed)) return null;
+        if (parsed.version !== TAX_CALCULATOR_STORAGE_VERSION) return null;
+
+        const { globalSettings, players } = parsed;
+        if (!isValidGlobalSettings(globalSettings)) return null;
+        if (
+            !Array.isArray(players) ||
+            players.length === 0 ||
+            !players.every(isValidPlayerItem)
+        ) {
+            return null;
+        }
+
+        return { globalSettings, players };
+    } catch {
+        return null;
+    }
+}
+
+function getInitialTaxCalculatorState(): TaxCalculatorState {
+    return readCachedTaxCalculatorState() ?? createDefaultTaxCalculatorState();
+}
+
+function writeCachedTaxCalculatorState(state: TaxCalculatorState): void {
+    if (typeof window === "undefined") return;
+
+    const cachedState: CachedTaxCalculatorState = {
+        version: TAX_CALCULATOR_STORAGE_VERSION,
+        ...state,
+    };
+
+    try {
+        window.localStorage.setItem(
+            TAX_CALCULATOR_STORAGE_KEY,
+            JSON.stringify(cachedState)
+        );
+    } catch {
+        // Ignore storage failures so calculation remains usable.
+    }
+}
+
 export default function TaxCalculator() {
+    const [initialTaxState] = useState<TaxCalculatorState>(
+        getInitialTaxCalculatorState
+    );
+
     // Global settings
-    const [globalSettings, setGlobalSettings] = useState<TaxGlobalSettings>({
-        svipDiscount: 0,
-        pcEnabled: false,
-    });
+    const [globalSettings, setGlobalSettings] = useState<TaxGlobalSettings>(
+        initialTaxState.globalSettings
+    );
 
     // Player items list
-    const [players, setPlayers] = useState<TaxPlayerItem[]>([
-        createNewPlayerItem(),
-    ]);
+    const [players, setPlayers] = useState<TaxPlayerItem[]>(
+        initialTaxState.players
+    );
+
+    useEffect(() => {
+        writeCachedTaxCalculatorState({ globalSettings, players });
+    }, [globalSettings, players]);
 
     // Add new player
     const addPlayer = useCallback(() => {
@@ -66,11 +178,6 @@ export default function TaxCalculator() {
     const totalSummary = useMemo(() => {
         return calculateTotalSummary(players, globalSettings);
     }, [players, globalSettings]);
-
-    // Get display name for player
-    const getPlayerDisplayName = (player: TaxPlayerItem, index: number) => {
-        return player.name.trim() || `Player ${index + 1}`;
-    };
 
     return (
         <div className="max-w-6xl mx-auto">
