@@ -12,6 +12,7 @@ import {
     formatShortNumber,
     formatBInput,
     parseBInput,
+    CP_DISCOUNT_OPTIONS,
     MARKET_TAX_RATE,
     PC_DISCOUNT_RATE,
 } from '@/services/taxService';
@@ -106,6 +107,32 @@ describe('taxService', () => {
         // Net = (100B - 40B) + 18B = 78B
         expect(result.netPrice).toBe(78000000000);
         expect(result.discountBreakdown.cp).toBe(18000000000);
+    });
+
+    it('should include and calculate correctly with 50% CP discount', () => {
+        expect(CP_DISCOUNT_OPTIONS).toContainEqual({
+            value: 0.50,
+            label: 'CP 50%',
+        });
+
+        const highDiscountItem: TaxPlayerItem = {
+            ...sampleItem,
+            cpDiscount: 0.50,
+        };
+        const noOtherDiscountSettings: TaxGlobalSettings = {
+            svipDiscount: 0,
+            pcEnabled: false,
+        };
+
+        const result = calculateNetPrice(highDiscountItem, noOtherDiscountSettings);
+
+        // Price = 100B
+        // Tax = 40% = 40B
+        // Discount rate = 50%
+        // Discount amount = 40B * 50% = 20B
+        // Net = (100B - 40B) + 20B = 80B
+        expect(result.netPrice).toBe(80000000000);
+        expect(result.discountBreakdown.cp).toBe(20000000000);
     });
 
 

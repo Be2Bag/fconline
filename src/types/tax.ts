@@ -4,7 +4,7 @@
  */
 
 /** ส่วนลด CP ที่เลือกได้ */
-export type CPDiscountRate = 0 | 0.10 | 0.20 | 0.25 | 0.30 | 0.35 | 0.40 | 0.45;
+export type CPDiscountRate = 0 | 0.10 | 0.20 | 0.25 | 0.30 | 0.35 | 0.40 | 0.45 | 0.50;
 
 /** ส่วนลด SVIP ที่เลือกได้ */
 export type SVIPDiscountRate = 0 | 0.10 | 0.20;
