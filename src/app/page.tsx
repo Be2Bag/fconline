@@ -61,7 +61,7 @@ export default function Home() {
       </div>
 
       {/* Floating Coffee QR - Fixed Position */}
-      <div className={`fixed bottom-4 right-4 z-40 hidden ${activeTab === "trading-calculator" ? "" : "lg:block"} animate-float-bounce`}>
+      <div className="fixed bottom-4 right-4 z-40 hidden lg:block animate-float-bounce">
         <div
           className="relative bg-white border-4 border-black shadow-[6px_6px_0px_#1a1a1a] p-3
             hover:scale-110 transition-all cursor-pointer group"
@@ -191,7 +191,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <main className="px-3 md:px-4 pb-8 md:pb-12 relative z-10">
+      <main className={`px-3 md:px-4 pb-8 md:pb-12 relative z-10 ${activeTab === "trading-calculator" ? "lg:pr-44 2xl:pr-4" : ""}`}>
         {activeTab === "calculator" && <Calculator />}
         {activeTab === "tax-calculator" && <TaxCalculator />}
         {activeTab === "trading-calculator" && <TradingCalculator />}
