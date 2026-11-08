@@ -48,7 +48,7 @@ const priceInputFormatter = new Intl.NumberFormat('en-US', {
  * @returns ผลการคำนวณพร้อมรายละเอียด
  */
 export function calculateNetPrice(
-    item: TaxPlayerItem,
+    item: Pick<TaxPlayerItem, 'price' | 'cpDiscount'>,
     globalSettings: TaxGlobalSettings
 ): TaxCalculationResult {
     const { price, cpDiscount } = item;
@@ -125,8 +125,8 @@ export function createNewPlayerItem(): TaxPlayerItem {
  * ย่อจำนวน BP ใหม่เป็น B/M โดยไม่ปัดยอดขึ้น
  */
 export function formatBPAmount(num: number): string {
-    if (num >= BILLION_BP) return `${compactBPFormatter.format(num / BILLION_BP)}B`;
-    if (num >= MILLION_BP) return `${compactBPFormatter.format(num / MILLION_BP)}M`;
+    if (Math.abs(num) >= BILLION_BP) return `${compactBPFormatter.format(num / BILLION_BP)}B`;
+    if (Math.abs(num) >= MILLION_BP) return `${compactBPFormatter.format(num / MILLION_BP)}M`;
     return `${smallBPFormatter.format(num / MILLION_BP)}M`;
 }
 

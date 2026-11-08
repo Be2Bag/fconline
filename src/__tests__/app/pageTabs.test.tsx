@@ -41,6 +41,13 @@ jest.mock('@/components/TaxCalculator', () => ({
     },
 }));
 
+jest.mock('@/components/TradingCalculator', () => ({
+    __esModule: true,
+    default: function MockTradingCalculator() {
+        return <div>Trading calculator content</div>;
+    },
+}));
+
 describe('Home tab navigation', () => {
     let container: HTMLDivElement;
     let root: Root;
@@ -68,5 +75,14 @@ describe('Home tab navigation', () => {
         );
 
         expect(buttonLabels.join(' ')).not.toContain('หาตำแหน่ง');
+    });
+
+    it('opens the trading calculator from its new tab', () => {
+        act(() => root.render(<Home />));
+        const tab = Array.from(container.querySelectorAll('button')).find(button => button.textContent?.includes('เก็งกำไรนักเตะ'));
+        if (!tab) throw new Error('Trading tab missing');
+        act(() => tab.click());
+        expect(container.textContent).toContain('Trading calculator content');
+        expect(container.textContent).not.toContain('Calculator content');
     });
 });

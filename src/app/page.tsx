@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import Calculator from "@/components/Calculator";
 import TaxCalculator from "@/components/TaxCalculator";
+import TradingCalculator from "@/components/TradingCalculator";
 import Image from "next/image";
 
 // Declare gtag for TypeScript
@@ -12,13 +13,14 @@ declare global {
   }
 }
 
-type TabType = "calculator" | "upgrade-simulator" | "tax-calculator";
+type TabType = "calculator" | "upgrade-simulator" | "tax-calculator" | "trading-calculator";
 
 // Tab display names for analytics
 const TAB_NAMES: Record<TabType, string> = {
   "calculator": "OVR Calculator",
   "upgrade-simulator": "Upgrade Simulator",
   "tax-calculator": "Tax Calculator",
+  "trading-calculator": "Trading Calculator",
 };
 
 export default function Home() {
@@ -59,7 +61,7 @@ export default function Home() {
       </div>
 
       {/* Floating Coffee QR - Fixed Position */}
-      <div className="fixed bottom-4 right-4 z-40 hidden lg:block animate-float-bounce">
+      <div className={`fixed bottom-4 right-4 z-40 hidden ${activeTab === "trading-calculator" ? "" : "lg:block"} animate-float-bounce`}>
         <div
           className="relative bg-white border-4 border-black shadow-[6px_6px_0px_#1a1a1a] p-3
             hover:scale-110 transition-all cursor-pointer group"
@@ -174,6 +176,17 @@ export default function Home() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => handleTabChange("trading-calculator")}
+            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
+              border-4 border-black transition-all relative
+              ${activeTab === "trading-calculator"
+                ? "bg-[#FFD700] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
+                : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
+              }`}
+          >
+            📈 เก็งกำไรนักเตะ
+          </button>
         </div>
       </div>
 
@@ -181,6 +194,7 @@ export default function Home() {
       <main className="px-3 md:px-4 pb-8 md:pb-12 relative z-10">
         {activeTab === "calculator" && <Calculator />}
         {activeTab === "tax-calculator" && <TaxCalculator />}
+        {activeTab === "trading-calculator" && <TradingCalculator />}
       </main>
 
       {/* Footer */}
