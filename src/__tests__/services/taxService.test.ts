@@ -8,14 +8,11 @@ import {
     calculateTotalSummary,
     generateItemId,
     createNewPlayerItem,
-    formatNumber,
     formatBPAmount,
-    formatBPInMillions,
     formatBPInput,
     parseBPInput,
     CP_DISCOUNT_OPTIONS,
     MARKET_TAX_RATE,
-    PC_DISCOUNT_RATE,
 } from '@/services/taxService';
 import type { TaxPlayerItem, TaxGlobalSettings } from '@/types/tax';
 
@@ -30,19 +27,25 @@ describe('taxService', () => {
 
     const sampleSettings: TaxGlobalSettings = {
         svipDiscount: 0.20, // SVIP 20%
-        pcEnabled: true, // PC 10%
     };
 
     describe('calculateNetPrice', () => {
+        it('ignores an obsolete PC setting when calculating the net price', () => {
+            const legacySettings = { svipDiscount: 0.20 as const, pcEnabled: true };
+            const result = calculateNetPrice(sampleItem, legacySettings);
+            expect(result.netPrice).toBe(76_000);
+            expect(result.totalDiscountRate).toBe(0.4);
+            expect(result.discountBreakdown).toEqual({ svip: 8_000, cp: 8_000 });
+        });
+
         it('should calculate net price correctly with all discounts', () => {
             const result = calculateNetPrice(sampleItem, sampleSettings);
 
             // Price = 100,000 BP
             // Tax = 40% = 40,000 BP
-            // Discounts = SVIP 20% + PC 10% + CP 20% = 50%
-            // Discount amount = 40,000 BP * 50% = 20,000 BP
-            // Net = 100,000 BP - 40,000 BP + 20,000 BP = 80,000 BP
-            expect(result.netPrice).toBe(80_000);
+            // Discounts = SVIP 20% + CP 20% = 40%
+            // Net = 100,000 - 40,000 + 16,000 = 76,000 BP
+            expect(result.netPrice).toBe(76_000);
         });
 
         it('should calculate gross tax correctly', () => {
@@ -55,14 +58,12 @@ describe('taxService', () => {
             const result = calculateNetPrice(sampleItem, sampleSettings);
 
             expect(result.discountBreakdown.svip).toBe(8_000);
-            expect(result.discountBreakdown.pc).toBe(4_000);
             expect(result.discountBreakdown.cp).toBe(8_000);
         });
 
         it('should handle no discounts', () => {
             const noDiscountSettings: TaxGlobalSettings = {
                 svipDiscount: 0,
-                pcEnabled: false,
             };
             const noDiscountItem: TaxPlayerItem = {
                 ...sampleItem,
@@ -91,7 +92,6 @@ describe('taxService', () => {
         };
         const noOtherDiscountSettings: TaxGlobalSettings = {
             svipDiscount: 0,
-            pcEnabled: false,
         };
 
         const result = calculateNetPrice(highDiscountItem, noOtherDiscountSettings);
@@ -112,7 +112,6 @@ describe('taxService', () => {
         };
         const noOtherDiscountSettings: TaxGlobalSettings = {
             svipDiscount: 0,
-            pcEnabled: false,
         };
 
         const result = calculateNetPrice(highDiscountItem, noOtherDiscountSettings);
@@ -121,6 +120,18 @@ describe('taxService', () => {
         expect(result.discountBreakdown.cp).toBe(20_000);
     });
 
+
+    it.each([
+        [0.55, 0, 8_200_000, 2_200_000, 'CP 55%'],
+        [0.55, 0.20, 9_000_000, 2_200_000, 'CP 55%'],
+        [0.60, 0, 8_400_000, 2_400_000, 'CP 60%'],
+        [0.60, 0.20, 9_200_000, 2_400_000, 'CP 60%'],
+    ] as const)('calculates CP %s with SVIP %s correctly', (cpDiscount, svipDiscount, netPrice, cpRefund, label) => {
+        expect(CP_DISCOUNT_OPTIONS).toContainEqual({ value: cpDiscount, label });
+        const result = calculateNetPrice({ ...sampleItem, price: 10_000_000, cpDiscount }, { svipDiscount });
+        expect(result.netPrice).toBe(netPrice);
+        expect(result.discountBreakdown.cp).toBe(cpRefund);
+    });
 
     describe('calculateTotalSummary', () => {
         it('should sum multiple items correctly', () => {
@@ -133,6 +144,8 @@ describe('taxService', () => {
 
             expect(result.totalPrice).toBe(150_000);
             expect(result.itemCount).toBe(2);
+            expect(result.totalNetPrice).toBe(112_000);
+            expect(result.discountBreakdown).toEqual({ svip: 12_000, cp: 10_000 });
         });
 
         it('should return zeros for empty array', () => {
@@ -148,7 +161,7 @@ describe('taxService', () => {
             const result = calculateTotalSummary(items, sampleSettings);
 
             expect(result.discountBreakdown).toHaveProperty('svip');
-            expect(result.discountBreakdown).toHaveProperty('pc');
+            expect(result.discountBreakdown).not.toHaveProperty('pc');
             expect(result.discountBreakdown).toHaveProperty('cp');
         });
     });
@@ -191,25 +204,11 @@ describe('taxService', () => {
         });
     });
 
-    describe('formatNumber', () => {
-        it('should format with commas', () => {
-            expect(formatNumber(1000000)).toBe('1,000,000');
-        });
-
-        it('should handle decimals', () => {
-            expect(formatNumber(1234.56)).toBe('1,234.56');
-        });
-
-        it('should not show decimals for whole numbers', () => {
-            expect(formatNumber(1000)).toBe('1,000');
-        });
-    });
-
     describe('formatBPAmount', () => {
         it.each([
-            [0, '0 BP'],
-            [1_000, '1,000 BP'],
-            [10_000, '10,000 BP'],
+            [0, '0M'],
+            [1_000, '0.001M'],
+            [10_000, '0.01M'],
             [800_000_000, '800M'],
             [1_000_000, '1M'],
             [35_400_000, '35.4M'],
@@ -218,57 +217,47 @@ describe('taxService', () => {
             [1_000_000_000, '1B'],
             [3_130_000_000, '3.13B'],
             [3_130_999_999, '3.13B'],
-            [61.1, '61.1 BP'],
-            [1.23456, '1.235 BP'],
+            [6_800_000_000, '6.8B'],
+            [61.1, '0.0000611M'],
+            [1.23456, '0.00000123456M'],
         ])('formats %s as %s', (value, expected) => {
             expect(formatBPAmount(value)).toBe(expected);
         });
     });
 
-    describe('formatBPInMillions', () => {
-        it.each([
-            [0, '0 BP'],
-            [600, '600 BP'],
-            [999_999, '999,999 BP'],
-            [1_000_000, '1M'],
-            [130_891_375, '130.891M'],
-            [130_891_999, '130.891M'],
-            [3_130_000_000, '3130M'],
-        ])('formats the net balance %s as %s', (value, expected) => {
-            expect(formatBPInMillions(value)).toBe(expected);
-        });
-    });
-
     describe('formatBPInput', () => {
-        it('should keep the price in new BP without scaling', () => {
-            expect(formatBPInput(1000)).toBe('1000');
-        });
-
-        it('should show decimals', () => {
-            expect(formatBPInput(61.1)).toBe('61.1');
-        });
-
-        it('should return empty string for zero', () => {
-            const result = formatBPInput(0);
-            expect(result).toBe('');
+        it.each([
+            [10_000_000, 'M', '10'],
+            [10_000_000, 'B', '0.01'],
+            [3_130_000_000, 'B', '3.13'],
+            [130_891_375, 'M', '130.891375'],
+            [1000, 'M', '0.001'],
+            [0.000001, 'M', '0.000000000001'],
+            [0, 'M', ''],
+            [0, 'B', ''],
+        ] as const)('shows %s BP in %s as %s', (price, unit, expected) => {
+            expect(formatBPInput(price, unit)).toBe(expected);
         });
     });
 
     describe('parseBPInput', () => {
         it.each([
-            ['1000', 1000],
-            [' 1,000.5 ', 1000.5],
-            ['61.1', 61.1],
-            ['0.000001', 0.000001],
-            ['', 0],
-            ['abc', 0],
-            ['100abc', 0],
-            ['1.2.3', 0],
-            ['-100', 0],
-            ['Infinity', 0],
-            ['9'.repeat(400), 0],
-        ])('parses %s as %s new BP', (value, expected) => {
-            expect(parseBPInput(value)).toBe(expected);
+            ['10', 'M', 10_000_000],
+            ['10', 'B', 10_000_000_000],
+            [' 1,000.5 ', 'M', 1_000_500_000],
+            ['3.13', 'B', 3_130_000_000],
+            ['0.000001', 'M', 1],
+            ['', 'M', 0],
+            ['.', 'M', 0],
+            ['abc', 'M', null],
+            ['100abc', 'B', null],
+            ['1.2.3', 'M', null],
+            ['-100', 'B', null],
+            ['Infinity', 'M', null],
+            ['9'.repeat(400), 'B', null],
+            ['9'.repeat(305), 'B', null],
+        ] as const)('parses %s %s as %s BP', (value, unit, expected) => {
+            expect(parseBPInput(value, unit)).toBe(expected);
         });
     });
 
@@ -277,8 +266,5 @@ describe('taxService', () => {
             expect(MARKET_TAX_RATE).toBe(0.4);
         });
 
-        it('should have correct PC discount rate', () => {
-            expect(PC_DISCOUNT_RATE).toBe(0.1);
-        });
     });
 });

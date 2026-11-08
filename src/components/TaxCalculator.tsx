@@ -6,6 +6,7 @@ import type {
     TaxGlobalSettings,
     SVIPDiscountRate,
     CPDiscountRate,
+    TaxPriceUnit,
 } from "@/types/tax";
 import {
     CP_DISCOUNT_OPTIONS,
@@ -14,8 +15,6 @@ import {
     calculateTotalSummary,
     createNewPlayerItem,
     formatBPAmount,
-    formatBPInMillions,
-    formatNumber,
     parseBPInput,
     formatBPInput,
 } from "@/services/taxService";
@@ -28,6 +27,7 @@ const TAX_CALCULATOR_STORAGE_VERSION = 2;
 interface TaxCalculatorState {
     globalSettings: TaxGlobalSettings;
     players: TaxPlayerItem[];
+    priceUnits: Record<string, TaxPriceUnit>;
 }
 
 interface CachedTaxCalculatorState extends TaxCalculatorState {
@@ -48,10 +48,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function isValidGlobalSettings(value: unknown): value is TaxGlobalSettings {
     if (!isRecord(value)) return false;
 
-    return (
-        svipDiscountValues.has(value.svipDiscount as number) &&
-        typeof value.pcEnabled === "boolean"
-    );
+    return svipDiscountValues.has(value.svipDiscount as number);
 }
 
 function isValidPlayerItem(value: unknown): value is TaxPlayerItem {
@@ -68,12 +65,13 @@ function isValidPlayerItem(value: unknown): value is TaxPlayerItem {
 }
 
 function createDefaultTaxCalculatorState(): TaxCalculatorState {
+    const player = createNewPlayerItem();
     return {
         globalSettings: {
             svipDiscount: 0,
-            pcEnabled: false,
         },
-        players: [createNewPlayerItem()],
+        players: [player],
+        priceUnits: { [player.id]: "M" },
     };
 }
 
@@ -98,14 +96,25 @@ function readCachedTaxCalculatorState(): TaxCalculatorState | null {
             return null;
         }
 
+        const migratedPlayers = parsed.version === 1
+            ? players.map((player) => ({
+                ...player,
+                price: player.price / TAX_CONFIG.LEGACY_BP_DIVISOR,
+            }))
+            : players;
+        const priceUnits: Record<string, TaxPriceUnit> = {};
+        for (const player of migratedPlayers) {
+            const savedUnit = isRecord(parsed.priceUnits) ? parsed.priceUnits[player.id] : undefined;
+            const defaultUnit = player.price >= 1_000_000_000 ? "B" : "M";
+            priceUnits[player.id] = savedUnit === "M" || savedUnit === "B"
+                ? savedUnit
+                : defaultUnit;
+        }
+
         return {
-            globalSettings,
-            players: parsed.version === 1
-                ? players.map((player) => ({
-                    ...player,
-                    price: player.price / TAX_CONFIG.LEGACY_BP_DIVISOR,
-                }))
-                : players,
+            globalSettings: { svipDiscount: globalSettings.svipDiscount },
+            players: migratedPlayers,
+            priceUnits,
         };
     } catch {
         return null;
@@ -149,14 +158,17 @@ export default function TaxCalculator() {
         initialTaxState.players
     );
     const [priceInputs, setPriceInputs] = useState<Record<string, string>>({});
+    const [priceUnits, setPriceUnits] = useState(initialTaxState.priceUnits);
 
     useEffect(() => {
-        writeCachedTaxCalculatorState({ globalSettings, players });
-    }, [globalSettings, players]);
+        writeCachedTaxCalculatorState({ globalSettings, players, priceUnits });
+    }, [globalSettings, players, priceUnits]);
 
     // Add new player
     const addPlayer = useCallback(() => {
-        setPlayers((prev) => [...prev, createNewPlayerItem()]);
+        const player = createNewPlayerItem();
+        setPlayers((prev) => [...prev, player]);
+        setPriceUnits((prev) => ({ ...prev, [player.id]: "M" }));
     }, []);
 
     // Remove player
@@ -166,6 +178,11 @@ export default function TaxCalculator() {
             return prev.filter((p) => p.id !== id);
         });
         setPriceInputs((prev) => {
+            const next = { ...prev };
+            delete next[id];
+            return next;
+        });
+        setPriceUnits((prev) => {
             const next = { ...prev };
             delete next[id];
             return next;
@@ -183,12 +200,22 @@ export default function TaxCalculator() {
     );
 
     const updatePrice = useCallback((id: string, value: string) => {
-        const normalized = value.replaceAll(',', '');
-        if (!/^\d*\.?\d*$/.test(normalized)) return;
-        if (normalized !== '.' && !Number.isFinite(Number(normalized))) return;
+        const unit = priceUnits[id] ?? "M";
+        const price = parseBPInput(value, unit);
+        if (price === null) return;
         setPriceInputs((prev) => ({ ...prev, [id]: value }));
-        updatePlayer(id, "price", parseBPInput(value));
-    }, [updatePlayer]);
+        updatePlayer(id, "price", price);
+    }, [updatePlayer, priceUnits]);
+
+    const updatePriceUnit = useCallback((id: string, value: string) => {
+        if (value !== "M" && value !== "B") return;
+        setPriceUnits((prev) => ({ ...prev, [id]: value }));
+        setPriceInputs((prev) => {
+            const next = { ...prev };
+            delete next[id];
+            return next;
+        });
+    }, []);
 
     // Calculate results for each player
     const playerResults = useMemo(() => {
@@ -219,14 +246,14 @@ export default function TaxCalculator() {
 
 
                 <p className="text-sm text-black/70 mb-1">
-                    กรอกราคาเป็น BP ใหม่ โดย 1,000,000 BP เดิม เท่ากับ 1 BP ใหม่
+                    เลือกหน่วย M หรือ B ข้างช่องราคา เช่น 10M หรือ 3.13B
                 </p>
                 <p className="text-xs text-black/80 mb-4">
-                    ผลลัพธ์ย่อ: B = พันล้าน BP, M = ล้าน BP
+                    1B = 1,000M | M = ล้าน BP, B = พันล้าน BP
                 </p>
 
                 {/* Global Settings */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-wrap gap-4">
                     {/* SVIP Discount */}
                     <div className="flex items-center gap-3">
                         <label className="font-bold text-sm uppercase min-w-[80px]">
@@ -254,27 +281,6 @@ export default function TaxCalculator() {
                         </div>
                     </div>
 
-                    {/* PC Discount */}
-                    <div className="flex items-center gap-3">
-                        <label className="font-bold text-sm uppercase min-w-[80px]">
-                            PC 10%:
-                        </label>
-                        <button
-                            onClick={() =>
-                                setGlobalSettings((prev) => ({
-                                    ...prev,
-                                    pcEnabled: !prev.pcEnabled,
-                                }))
-                            }
-                            className={`px-4 py-2 font-bold text-sm uppercase border-3 border-black transition-all
-                                ${globalSettings.pcEnabled
-                                    ? "bg-[#7BF1A8] shadow-[2px_2px_0px_#1a1a1a] translate-x-[-1px] translate-y-[-1px]"
-                                    : "bg-white shadow-[3px_3px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#1a1a1a]"
-                                }`}
-                        >
-                            {globalSettings.pcEnabled ? "✓ เปิดใช้" : "ปิด"}
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -287,8 +293,10 @@ export default function TaxCalculator() {
                     <div className="flex gap-2">
                         <button
                             onClick={() => {
-                                setPlayers([createNewPlayerItem()]);
+                                const player = createNewPlayerItem();
+                                setPlayers([player]);
                                 setPriceInputs({});
+                                setPriceUnits({ [player.id]: "M" });
                             }}
                             className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gray-200 font-bold text-xs sm:text-sm uppercase
                                 border-3 border-black shadow-[3px_3px_0px_#1a1a1a]
@@ -312,13 +320,12 @@ export default function TaxCalculator() {
                 </div>
 
                 {/* Table Header */}
-                <div className="hidden md:grid md:grid-cols-[36px_minmax(60px,1fr)_minmax(80px,1.2fr)_minmax(70px,1fr)_minmax(80px,1.1fr)_minmax(75px,1fr)_minmax(75px,1fr)_minmax(80px,1fr)_minmax(80px,1.2fr)_36px] gap-2 bg-black text-white p-3 font-bold text-[11px] uppercase mb-2 items-center">
+                <div className="hidden lg:grid lg:grid-cols-[36px_minmax(60px,1fr)_minmax(112px,1.4fr)_minmax(70px,1fr)_minmax(80px,1.1fr)_minmax(75px,1fr)_minmax(80px,1fr)_minmax(80px,1.2fr)_36px] gap-2 bg-black text-white p-3 font-bold text-[11px] uppercase mb-2 items-center">
                     <div className="text-center">#</div>
                     <div className="text-center">ชื่อ</div>
                     <div className="text-center">ราคาขาย</div>
                     <div className="text-center">คูปอง</div>
                     <div className="text-center text-red-400">ภาษีตลาด</div>
-                    <div className="text-center text-cyan-400">PC</div>
                     <div className="text-center text-purple-400">VIP</div>
                     <div className="text-center text-green-400">คูปอง</div>
                     <div className="text-center text-yellow-400">ราคาสุทธิ</div>
@@ -333,7 +340,7 @@ export default function TaxCalculator() {
                             className="border-3 border-black bg-gray-50 hover:bg-gray-100 transition-colors overflow-hidden"
                         >
                             {/* Mobile Layout */}
-                            <div className="md:hidden">
+                            <div className="lg:hidden">
                                 {/* Header Row: Index + Name + Delete */}
                                 <div className="flex items-center gap-2 p-3 bg-gray-100 border-b-2 border-black">
                                     <span className="font-black text-base bg-[#FFDE00] border-2 border-black w-7 h-7 flex items-center justify-center shrink-0">
@@ -345,7 +352,7 @@ export default function TaxCalculator() {
                                         onChange={(e) =>
                                             updatePlayer(player.id, "name", e.target.value)
                                         }
-                                        placeholder={`Player${index + 1}`}
+                                        placeholder={`ชื่อนักเตะ${index + 1}`}
                                         className="flex-1 min-w-0 px-2 py-1.5 border-2 border-black font-bold text-sm
                                             focus:outline-none focus:ring-2 focus:ring-[#FFDE00]"
                                     />
@@ -368,19 +375,27 @@ export default function TaxCalculator() {
                                         <label className="text-xs font-bold uppercase text-gray-600 mb-1 block">
                                             💵 ราคาขาย
                                         </label>
-                                        <div className="relative">
+                                        <div className="flex gap-1">
                                             <input
                                                 type="text"
                                                 inputMode="decimal"
-                                                aria-label={`ราคาขายรายการที่ ${index + 1} หน่วย BP ใหม่`}
-                                                value={priceInputs[player.id] ?? formatBPInput(player.price)}
+                                                aria-label={`ราคาขายรายการที่ ${index + 1} หน่วย ${priceUnits[player.id] ?? "M"}`}
+                                                value={priceInputs[player.id] ?? formatBPInput(player.price, priceUnits[player.id] ?? "M")}
                                                 onChange={(e) => updatePrice(player.id, e.target.value)}
                                                 placeholder="0"
-                                                className="w-full px-3 py-2.5 pr-9 border-2 border-black font-bold text-center text-base
+                                                className="min-w-0 flex-1 px-3 py-2.5 border-2 border-black font-bold text-center text-base
                                                     focus:outline-none focus:ring-2 focus:ring-[#FFDE00]
                                                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                             />
-                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 font-bold text-gray-600 text-sm">BP</span>
+                                            <select
+                                                aria-label={`หน่วยราคาขายรายการที่ ${index + 1}`}
+                                                value={priceUnits[player.id] ?? "M"}
+                                                onChange={(e) => updatePriceUnit(player.id, e.target.value)}
+                                                className="w-16 border-2 border-black bg-white text-black font-bold text-center focus:outline-none focus:ring-2 focus:ring-[#FFDE00]"
+                                            >
+                                                <option value="M">M</option>
+                                                <option value="B">B</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div>
@@ -388,6 +403,7 @@ export default function TaxCalculator() {
                                             🎟️ คูปอง
                                         </label>
                                         <select
+                                            aria-label={`คูปอง CP รายการที่ ${index + 1}`}
                                             value={player.cpDiscount}
                                             onChange={(e) =>
                                                 updatePlayer(
@@ -408,15 +424,11 @@ export default function TaxCalculator() {
                                     </div>
                                 </div>
 
-                                {/* Breakdown Grid: 2x2 */}
-                                <div className="grid grid-cols-2 gap-2 p-2 bg-gray-200 border-b-2 border-black">
+                                {/* Breakdown Grid */}
+                                <div className="grid grid-cols-3 gap-2 p-2 bg-gray-200 border-b-2 border-black">
                                     <div className="bg-red-100 p-2 text-center border border-red-300">
                                         <div className="text-[10px] font-bold text-red-700 uppercase">ภาษี</div>
                                         <div className="font-bold text-red-800 text-xs sm:text-sm break-words">-{formatBPAmount(result.grossTax)}</div>
-                                    </div>
-                                    <div className="bg-cyan-100 p-2 text-center border border-cyan-300">
-                                        <div className="text-[10px] font-bold text-cyan-700 uppercase">PC</div>
-                                        <div className="font-bold text-cyan-800 text-xs sm:text-sm break-words">+{formatBPAmount(result.discountBreakdown.pc)}</div>
                                     </div>
                                     <div className="bg-purple-100 p-2 text-center border border-purple-300">
                                         <div className="text-[10px] font-bold text-purple-700 uppercase">SVIP</div>
@@ -431,14 +443,14 @@ export default function TaxCalculator() {
                                 {/* Net Price - Prominent */}
                                 <div className="bg-[#FFDE00] p-3 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
                                     <span className="font-bold text-sm uppercase">💰 ราคาสุทธิ</span>
-                                    <span className="font-black text-xl text-[#1a1a1a]" title={`${formatNumber(result.netPrice)} BP`}>
+                                    <span className="font-black text-xl text-[#1a1a1a]" title={`${formatBPAmount(result.netPrice)}`}>
                                         {formatBPAmount(result.netPrice)}
                                     </span>
                                 </div>
                             </div>
 
-                            {/* Desktop Layout (unchanged) */}
-                            <div className="hidden md:grid md:grid-cols-[36px_minmax(60px,1fr)_minmax(80px,1.2fr)_minmax(70px,1fr)_minmax(80px,1.1fr)_minmax(75px,1fr)_minmax(75px,1fr)_minmax(80px,1fr)_minmax(80px,1.2fr)_36px] gap-2 items-center p-3">
+                            {/* Desktop Layout */}
+                            <div className="hidden lg:grid lg:grid-cols-[36px_minmax(60px,1fr)_minmax(112px,1.4fr)_minmax(70px,1fr)_minmax(80px,1.1fr)_minmax(75px,1fr)_minmax(80px,1fr)_minmax(80px,1.2fr)_36px] gap-2 items-center p-3">
                                 {/* Index */}
                                 <div className="text-center font-bold text-sm">
                                     {index + 1}
@@ -452,30 +464,39 @@ export default function TaxCalculator() {
                                         onChange={(e) =>
                                             updatePlayer(player.id, "name", e.target.value)
                                         }
-                                        placeholder={`Player${index + 1}`}
+                                        placeholder={`ชื่อนักเตะ${index + 1}`}
                                         className="w-full px-2 py-1.5 border-2 border-black font-bold text-xs text-center
                                             focus:outline-none focus:ring-2 focus:ring-[#FFDE00]"
                                     />
                                 </div>
 
-                                {/* Price Input with BP suffix */}
-                                <div className="relative">
+                                {/* Price Input with M/B unit */}
+                                <div className="flex gap-1">
                                     <input
                                         type="text"
                                         inputMode="decimal"
-                                        aria-label={`ราคาขายรายการที่ ${index + 1} หน่วย BP ใหม่`}
-                                        value={priceInputs[player.id] ?? formatBPInput(player.price)}
+                                        aria-label={`ราคาขายรายการที่ ${index + 1} หน่วย ${priceUnits[player.id] ?? "M"}`}
+                                        value={priceInputs[player.id] ?? formatBPInput(player.price, priceUnits[player.id] ?? "M")}
                                         onChange={(e) => updatePrice(player.id, e.target.value)}
                                         placeholder="0"
-                                        className="w-full px-2 py-1.5 pr-8 border-2 border-black font-bold text-center text-sm
+                                        className="min-w-0 flex-1 px-2 py-1.5 border-2 border-black font-bold text-center text-sm
                                             focus:outline-none focus:ring-2 focus:ring-[#FFDE00]
                                             [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     />
-                                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 font-bold text-gray-600 text-xs">BP</span>
+                                    <select
+                                        aria-label={`หน่วยราคาขายรายการที่ ${index + 1}`}
+                                        value={priceUnits[player.id] ?? "M"}
+                                        onChange={(e) => updatePriceUnit(player.id, e.target.value)}
+                                        className="w-12 border-2 border-black bg-white text-black font-bold text-xs text-center focus:outline-none focus:ring-2 focus:ring-[#FFDE00]"
+                                    >
+                                        <option value="M">M</option>
+                                        <option value="B">B</option>
+                                    </select>
                                 </div>
 
                                 {/* CP Discount Dropdown */}
                                 <select
+                                    aria-label={`คูปอง CP รายการที่ ${index + 1}`}
                                     value={player.cpDiscount}
                                     onChange={(e) =>
                                         updatePlayer(
@@ -495,27 +516,23 @@ export default function TaxCalculator() {
                                 </select>
 
                                 {/* Tax */}
-                                <span className="font-bold text-red-800 text-xs truncate block text-center" title={`-${formatNumber(result.grossTax)} BP`}>
+                                <span className="font-bold text-red-800 text-xs truncate block text-center" title={`-${formatBPAmount(result.grossTax)}`}>
                                     -{formatBPAmount(result.grossTax)}
                                 </span>
 
-                                {/* PC */}
-                                <span className="font-bold text-cyan-800 text-xs truncate block text-center" title={`+${formatNumber(result.discountBreakdown.pc)} BP`}>
-                                    +{formatBPAmount(result.discountBreakdown.pc)}
-                                </span>
 
                                 {/* VIP */}
-                                <span className="font-bold text-purple-600 text-xs truncate block text-center" title={`+${formatNumber(result.discountBreakdown.svip)} BP`}>
+                                <span className="font-bold text-purple-600 text-xs truncate block text-center" title={`+${formatBPAmount(result.discountBreakdown.svip)}`}>
                                     +{formatBPAmount(result.discountBreakdown.svip)}
                                 </span>
 
                                 {/* Coupon */}
-                                <span className="font-bold text-green-800 text-xs truncate block text-center" title={`+${formatNumber(result.discountBreakdown.cp)} BP`}>
+                                <span className="font-bold text-green-800 text-xs truncate block text-center" title={`+${formatBPAmount(result.discountBreakdown.cp)}`}>
                                     +{formatBPAmount(result.discountBreakdown.cp)}
                                 </span>
 
                                 {/* Net Price */}
-                                <span className="font-bold text-base text-yellow-900 truncate block text-center" title={`${formatNumber(result.netPrice)} BP`}>
+                                <span className="font-bold text-base text-yellow-900 truncate block text-center" title={`${formatBPAmount(result.netPrice)}`}>
                                     {formatBPAmount(result.netPrice)}
                                 </span>
 
@@ -573,20 +590,12 @@ export default function TaxCalculator() {
                     </div>
 
                     {/* Discounts Section */}
-                    {(totalSummary.discountBreakdown.pc > 0 || totalSummary.discountBreakdown.svip > 0 || totalSummary.discountBreakdown.cp > 0) && (
+                    {(totalSummary.discountBreakdown.svip > 0 || totalSummary.discountBreakdown.cp > 0) && (
                         <div className="bg-[#E8F5E9] border-3 border-black p-4 mb-4 shadow-[4px_4px_0px_#1a1a1a]">
                             <div className="text-xs font-bold uppercase text-green-800 mb-3 flex items-center gap-2">
                                 🎁 ส่วนลดที่ได้รับคืน
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                {/* PC Discount */}
-                                <div className={`text-center p-2 border-2 border-black ${totalSummary.discountBreakdown.pc > 0 ? 'bg-cyan-300' : 'bg-gray-200'}`}>
-                                    <div className="text-[10px] font-bold uppercase">PC</div>
-                                    <div className="text-sm font-black text-cyan-800">
-                                        +{formatBPAmount(totalSummary.discountBreakdown.pc)}
-                                    </div>
-                                </div>
-
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {/* SVIP Discount */}
                                 <div className={`text-center p-2 border-2 border-black ${totalSummary.discountBreakdown.svip > 0 ? 'bg-purple-300' : 'bg-gray-200'}`}>
                                     <div className="text-[10px] font-bold uppercase">VIP</div>
@@ -615,18 +624,13 @@ export default function TaxCalculator() {
                                         💰 เงินที่ได้รับสุทธิ
                                     </div>
                                     <div className="text-[10px] text-yellow-800 mt-1">
-                                        SVIP: {globalSettings.svipDiscount * 100}% | PC: {globalSettings.pcEnabled ? "✓ 10%" : "✗"}
+                                        SVIP: {globalSettings.svipDiscount * 100}%
                                     </div>
                                 </div>
                                 <div className="min-w-0 text-left sm:text-right">
                                     <div className="text-2xl sm:text-3xl md:text-4xl font-black text-black tracking-tight break-words">
-                                        {formatBPInMillions(totalSummary.totalNetPrice)}
+                                        {formatBPAmount(totalSummary.totalNetPrice)}
                                     </div>
-                                    {totalSummary.totalNetPrice >= 1_000_000 && (
-                                        <div className="text-xs text-yellow-900 mt-1 break-words">
-                                            {formatNumber(totalSummary.totalNetPrice)} BP
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </div>

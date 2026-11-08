@@ -9,8 +9,6 @@ export const TAX_CONFIG = {
     // ===== Tax Rate Settings =====
     /** อัตราภาษีตลาดคงที่ (40%) */
     MARKET_TAX_RATE: 0.4,
-    /** ส่วนลด PC คงที่ (10%) */
-    PC_DISCOUNT_RATE: 0.1,
 
     // ===== Number Formatting =====
     /** ตัวหารสำหรับแปลงข้อมูลที่บันทึกเป็น BP เดิมให้เป็น BP ใหม่ */
@@ -30,6 +28,8 @@ export const TAX_CONFIG = {
         { value: 0.40 as CPDiscountRate, label: 'CP 40%' },
         { value: 0.45 as CPDiscountRate, label: 'CP 45%' },
         { value: 0.50 as CPDiscountRate, label: 'CP 50%' },
+        { value: 0.55 as CPDiscountRate, label: 'CP 55%' },
+        { value: 0.60 as CPDiscountRate, label: 'CP 60%' },
     ],
 
     /** ตัวเลือก SVIP discount */
@@ -50,7 +50,6 @@ export const TAX_CONFIG = {
     /** ค่า default สำหรับ global settings */
     DEFAULT_GLOBAL_SETTINGS: {
         svipDiscount: 0 as SVIPDiscountRate,
-        pcEnabled: false,
     },
 } as const;
 

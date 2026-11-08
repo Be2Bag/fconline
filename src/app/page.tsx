@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import Calculator from "@/components/Calculator";
-import BoxSimulator from "@/components/BoxSimulator";
 import TaxCalculator from "@/components/TaxCalculator";
 import Image from "next/image";
 
@@ -13,13 +12,12 @@ declare global {
   }
 }
 
-type TabType = "calculator" | "upgrade-simulator" | "box-simulator" | "tax-calculator";
+type TabType = "calculator" | "upgrade-simulator" | "tax-calculator";
 
 // Tab display names for analytics
 const TAB_NAMES: Record<TabType, string> = {
   "calculator": "OVR Calculator",
   "upgrade-simulator": "Upgrade Simulator",
-  "box-simulator": "Box Simulator",
   "tax-calculator": "Tax Calculator",
 };
 
@@ -161,17 +159,6 @@ export default function Home() {
             ⚡ ตีบวก
           </button> */}
           <button
-            onClick={() => handleTabChange("box-simulator")}
-            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
-              border-4 border-black transition-all relative
-              ${activeTab === "box-simulator"
-                ? "bg-[#FF6B6B] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
-                : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
-              }`}
-          >
-            🎁 เปิดกล่อง
-          </button>
-          <button
             onClick={() => handleTabChange("tax-calculator")}
             className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
               border-4 border-black transition-all relative
@@ -193,7 +180,6 @@ export default function Home() {
       {/* Main Content */}
       <main className="px-3 md:px-4 pb-8 md:pb-12 relative z-10">
         {activeTab === "calculator" && <Calculator />}
-        {activeTab === "box-simulator" && <BoxSimulator />}
         {activeTab === "tax-calculator" && <TaxCalculator />}
       </main>
 

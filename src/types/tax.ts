@@ -4,16 +4,19 @@
  */
 
 /** ส่วนลด CP ที่เลือกได้ */
-export type CPDiscountRate = 0 | 0.10 | 0.20 | 0.25 | 0.30 | 0.35 | 0.40 | 0.45 | 0.50;
+export type CPDiscountRate = 0 | 0.10 | 0.20 | 0.25 | 0.30 | 0.35 | 0.40 | 0.45 | 0.50 | 0.55 | 0.60;
 
 /** ส่วนลด SVIP ที่เลือกได้ */
 export type SVIPDiscountRate = 0 | 0.10 | 0.20;
+
+/** หน่วยกรอกราคา โดยมูลค่าภายในยังเก็บเป็น BP เต็ม */
+export type TaxPriceUnit = 'M' | 'B';
 
 /** ข้อมูลนักเตะแต่ละรายการ */
 export interface TaxPlayerItem {
     /** ID สำหรับ React key */
     id: string;
-    /** ชื่อนักเตะ (optional - ถ้าไม่กรอกจะแสดง Player 1, 2, ...) */
+    /** ชื่อนักเตะ (ถ้าไม่กรอกจะแสดงข้อความตัวอย่าง ชื่อนักเตะ1, ชื่อนักเตะ2, ...) */
     name: string;
     /** ราคาขาย */
     price: number;
@@ -25,8 +28,6 @@ export interface TaxPlayerItem {
 export interface TaxGlobalSettings {
     /** อัตราส่วนลด SVIP (0, 10%, 20%) */
     svipDiscount: SVIPDiscountRate;
-    /** เปิดใช้ส่วนลด PC (10%) */
-    pcEnabled: boolean;
 }
 
 /** ผลการคำนวณภาษีต่อรายการ */
@@ -35,7 +36,7 @@ export interface TaxCalculationResult {
     price: number;
     /** ภาษีตลาด 40% (ก่อนหักส่วนลด) */
     grossTax: number;
-    /** ส่วนลดรวมทั้งหมด (SVIP + PC + CP) */
+    /** ส่วนลดรวมทั้งหมด (SVIP + CP) */
     totalDiscountRate: number;
     /** จำนวนเงินที่ได้คืนจากส่วนลด */
     discountAmount: number;
@@ -44,7 +45,6 @@ export interface TaxCalculationResult {
     /** รายละเอียดส่วนลดแต่ละประเภท */
     discountBreakdown: {
         svip: number;
-        pc: number;
         cp: number;
     };
 }
@@ -64,7 +64,6 @@ export interface TaxTotalSummary {
     /** รายละเอียดส่วนลดรวมแต่ละประเภท */
     discountBreakdown: {
         svip: number;
-        pc: number;
         cp: number;
     };
 }
