@@ -87,6 +87,14 @@ export default function Calculator() {
         <div className="calculator max-w-6xl mx-auto">
             {/* Position Selector */}
             <div className="glass-card p-4 md:p-6 mb-4 md:mb-6">
+                <div className="mb-4 border-2 border-black bg-yellow-100 p-3 text-sm leading-relaxed text-black">
+                    <p>
+                        <strong>หมายเหตุ</strong> เลือกตำแหน่งที่นักเตะยืนจริงในแผนของคุณ เพื่อให้ระบบคำนวณ OVR และแนะนำการอัปสกิลให้ได้ OVR สูงสุดในตำแหน่งนั้น
+                    </p>
+                    <p className="mt-1">
+                        เช่น นักเตะเป็น LW แต่ในแผน 4-2-3-1 ใช้ยืน CAM ให้เลือก <strong>CAM</strong>
+                    </p>
+                </div>
                 <PositionSelect
                     selectedPosition={position}
                     onPositionChange={handlePositionChange}
