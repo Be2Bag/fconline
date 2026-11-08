@@ -67,7 +67,6 @@ export function useOvrCalculator(): UseOvrCalculatorReturn {
     const [upgradedStats, setUpgradedStats] = useState<string[]>([]);
 
     // UI state
-    const [isCalculating, setIsCalculating] = useState(false);
     const [showResults, setShowResults] = useState(false);
 
     // Get position data
@@ -115,19 +114,12 @@ export function useOvrCalculator(): UseOvrCalculatorReturn {
         return optimal.map((o) => o.stat);
     }, [selectedPosition]);
 
-    // Auto-calculate when all stats are filled
+    const isCalculating = allStatsFilled && !showResults;
+
     useEffect(() => {
-        if (allStatsFilled) {
-            setIsCalculating(true);
-            // Simulate calculation delay for UX
-            const timer = setTimeout(() => {
-                setIsCalculating(false);
-                setShowResults(true);
-            }, APP_CONFIG.CALCULATION_DELAY);
-            return () => clearTimeout(timer);
-        } else {
-            setShowResults(false);
-        }
+        if (!allStatsFilled) return;
+        const timer = setTimeout(() => setShowResults(true), APP_CONFIG.CALCULATION_DELAY);
+        return () => clearTimeout(timer);
     }, [allStatsFilled]);
 
     /**
@@ -144,6 +136,7 @@ export function useOvrCalculator(): UseOvrCalculatorReturn {
      * ตั้งค่า stat
      */
     const setStat = useCallback((stat: string, value: number) => {
+        if (value <= 0) setShowResults(false);
         setStats((prev) => ({
             ...prev,
             [stat]: value,
@@ -172,7 +165,6 @@ export function useOvrCalculator(): UseOvrCalculatorReturn {
         setStats({});
         setUpgradedStats([]);
         setShowResults(false);
-        setIsCalculating(false);
     }, []);
 
     return {

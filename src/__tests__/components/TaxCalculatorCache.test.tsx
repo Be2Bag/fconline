@@ -26,7 +26,18 @@ describe('TaxCalculator local cache', () => {
     localStorage.clear();
   });
 
-  it('loads cached tax calculator state from localStorage', async () => {
+  async function enterPrice(value: string) {
+    const input = container.querySelector<HTMLInputElement>('input[inputmode="decimal"]');
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+    if (!input || !setter) throw new Error('Price input is unavailable');
+
+    await act(async () => {
+      setter.call(input, value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
+  it('migrates legacy BP once while preserving player and discount settings', async () => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
@@ -47,10 +58,82 @@ describe('TaxCalculator local cache', () => {
       root.render(<TaxCalculator />);
     });
 
-    const textInputs = Array.from(container.querySelectorAll('input[type="text"]')) as HTMLInputElement[];
+    const textInputs = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="text"]'));
 
     expect(textInputs.some((input) => input.value === 'Ronaldo')).toBe(true);
-    expect(container.textContent).toContain('92B');
+    expect(container.textContent).toContain('92,000 BP');
+
+    const migrated = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
+    expect(migrated.version).toBe(2);
+    expect(migrated.globalSettings).toEqual({ svipDiscount: 0.2, pcEnabled: true });
+    expect(migrated.players).toEqual([
+      { id: 'cached-player', name: 'Ronaldo', price: 100000, cpDiscount: 0.5 },
+    ]);
+
+    await act(async () => root.unmount());
+    root = createRoot(container);
+    await act(async () => root.render(<TaxCalculator />));
+
+    expect(container.textContent).toContain('92,000 BP');
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').players[0].price).toBe(100000);
+  });
+
+  it.each([
+    [1_000_000_000, 1_000],
+    [10_000_000_000, 10_000],
+    [800_000_000_000_000, 800_000_000],
+    [500_000, 0.5],
+  ])('converts cached legacy price %s to %s new BP', async (oldPrice, newPrice) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      version: 1,
+      globalSettings: { svipDiscount: 0, pcEnabled: false },
+      players: [{ id: 'legacy', name: 'Player', price: oldPrice, cpDiscount: 0 }],
+    }));
+
+    await act(async () => root.render(<TaxCalculator />));
+
+    const inputs = container.querySelectorAll<HTMLInputElement>('input[inputmode="decimal"]');
+    expect(Array.from(inputs, (input) => input.value)).toEqual([String(newPrice), String(newPrice)]);
+    const cached = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
+    expect(cached.version).toBe(2);
+    expect(cached.players[0].price).toBe(newPrice);
+  });
+
+  it('uses entered new BP directly and shares the value between responsive layouts', async () => {
+    await act(async () => root.render(<TaxCalculator />));
+    await enterPrice('1,000');
+
+    expect(container.textContent).toContain('600 BP');
+    expect(container.textContent).toContain('400 BP');
+    const inputs = container.querySelectorAll<HTMLInputElement>('input[inputmode="decimal"]');
+    expect(Array.from(inputs, (input) => input.value)).toEqual(['1,000', '1,000']);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').players[0].price).toBe(1000);
+
+    await act(async () => root.unmount());
+    root = createRoot(container);
+    await act(async () => root.render(<TaxCalculator />));
+
+    expect(container.textContent).toContain('600 BP');
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').players[0].price).toBe(1000);
+  });
+
+  it('preserves decimal edits and clears the price without retaining the draft', async () => {
+    await act(async () => root.render(<TaxCalculator />));
+    await enterPrice('0.');
+    expect(container.querySelector<HTMLInputElement>('input[inputmode="decimal"]')?.value).toBe('0.');
+    await enterPrice('0.5');
+
+    expect(container.textContent).toContain('0.3 BP');
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').players[0].price).toBe(0.5);
+
+    const clearButton = Array.from(container.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('เคลียร์')
+    );
+    if (!clearButton) throw new Error('Clear button is unavailable');
+    await act(async () => clearButton.click());
+
+    expect(container.querySelector<HTMLInputElement>('input[inputmode="decimal"]')?.value).toBe('');
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').players[0].price).toBe(0);
   });
 
   it('saves tax calculator state to localStorage after changes', async () => {
@@ -70,6 +153,7 @@ describe('TaxCalculator local cache', () => {
 
     const cachedState = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
 
+    expect(cachedState.version).toBe(2);
     expect(cachedState.globalSettings.svipDiscount).toBe(0.2);
     expect(cachedState.players).toHaveLength(1);
   });

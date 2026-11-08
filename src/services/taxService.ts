@@ -12,8 +12,6 @@ import type {
     TaxGlobalSettings,
     TaxCalculationResult,
     TaxTotalSummary,
-    CPDiscountRate,
-    SVIPDiscountRate,
 } from '@/types/tax';
 import { TAX_CONFIG } from '@/config';
 
@@ -109,54 +107,36 @@ export function createNewPlayerItem(): TaxPlayerItem {
 
 /**
  * Format ตัวเลขเป็นรูปแบบ locale (มี comma)
- * แสดงทศนิยม 2 ตำแหน่งเมื่อไม่เป็นจำนวนเต็ม
+ * แสดงทศนิยมไม่เกิน 3 ตำแหน่ง
  */
 export function formatNumber(num: number): string {
-    const isWholeNumber = Number.isInteger(num);
-    return num.toLocaleString('th-TH', {
-        minimumFractionDigits: isWholeNumber ? 0 : 2,
-        maximumFractionDigits: isWholeNumber ? 0 : 2,
-    });
-}
-
-/**
- * Format ตัวเลขเป็นรูปแบบ B (พันล้าน) เสมอ พร้อม comma
- * แสดงทศนิยมตามค่าจริง (ไม่เกิน 3 ตำแหน่ง) เหมือนในเกม
- */
-export function formatShortNumber(num: number): string {
-    // ถ้าเป็น 0 ให้แสดง 0B
-    if (num === 0) return '0B';
-
-    const billions = num / TAX_CONFIG.BILLION_UNIT;
-
-    // แสดงทศนิยมตามค่าจริง ไม่เกิน 3 ตำแหน่ง (ตัด trailing zeros)
-    const formatted = billions.toLocaleString('en-US', {
-        minimumFractionDigits: 0,
+    return num.toLocaleString('en-US', {
         maximumFractionDigits: TAX_CONFIG.MAX_DECIMAL_PLACES,
     });
-    return `${formatted}B`;
+}
+
+/**
+ * แสดงจำนวน BP ใหม่โดยตรง พร้อม comma และหน่วย BP
+ */
+export function formatBPAmount(num: number): string {
+    return `${formatNumber(num)} BP`;
 }
 
 
 /**
- * Format ตัวเลขเป็นรูปแบบ B สำหรับแสดงใน input
- * ไม่มีเครื่องหมาย B ต่อท้าย
+ * แสดงจำนวน BP ใหม่ในช่องราคา โดยไม่แปลงหน่วย
  */
-export function formatBInput(num: number): string {
+export function formatBPInput(num: number): string {
     if (num === 0) return '';
-    const billions = num / TAX_CONFIG.BILLION_UNIT;
-    // ตัดเลข 0 ท้ายออก
-    return billions.toString();
+    return num.toString();
 }
 
 /**
- * แปลงค่าจาก input B เป็นตัวเลขจริง
- * เช่น "577" => 577,000,000,000
- *      "61.1" => 61,100,000,000
- * ไม่รับค่าติดลบ
+ * อ่านราคา BP ใหม่ รองรับ comma และทศนิยม ไม่รับค่าติดลบ
  */
-export function parseBInput(value: string): number {
-    const parsed = parseFloat(value);
-    if (isNaN(parsed)) return 0;
-    return Math.max(0, parsed) * TAX_CONFIG.BILLION_UNIT;
+export function parseBPInput(value: string): number {
+    const normalized = value.replaceAll(',', '').trim();
+    if (!/^\d*\.?\d*$/.test(normalized)) return 0;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
 }

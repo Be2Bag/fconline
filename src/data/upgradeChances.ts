@@ -90,7 +90,10 @@ export {
 } from '@/services';
 
 // Import the new function to create wrapper
-import { getLevelAfterFailure as getLevelAfterFailureNew } from '@/services';
+import {
+    getLevelAfterFailure as getLevelAfterFailureNew,
+    simulateUpgrade as simulate,
+} from '@/services/upgradeService';
 
 /**
  * Wrapper for backward compatibility
@@ -106,8 +109,6 @@ export function getLevelAfterFailure(currentLevel: number): number {
  * Returns true/false for backward compatibility
  */
 export function simulateUpgradeWithBoost(currentLevel: number, boostGauge: number): boolean {
-    // Import here to avoid circular dependency
-    const { simulateUpgrade: simulate } = require('@/services');
     const result = simulate(currentLevel, boostGauge);
     return result.success;
 }

@@ -12,7 +12,7 @@ import {
     countByRarity,
     calculateProfitLoss,
 } from '@/services/boxService';
-import type { BoxType, OpenResult, Rarity } from '@/types';
+import type { BoxType, OpenResult } from '@/types';
 
 describe('boxService', () => {
     // Sample box for testing - matches BoxType interface

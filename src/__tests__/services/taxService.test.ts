@@ -9,9 +9,9 @@ import {
     generateItemId,
     createNewPlayerItem,
     formatNumber,
-    formatShortNumber,
-    formatBInput,
-    parseBInput,
+    formatBPAmount,
+    formatBPInput,
+    parseBPInput,
     CP_DISCOUNT_OPTIONS,
     MARKET_TAX_RATE,
     PC_DISCOUNT_RATE,
@@ -23,7 +23,7 @@ describe('taxService', () => {
     const sampleItem: TaxPlayerItem = {
         id: 'test-1',
         name: 'Test Player',
-        price: 100000000000, // 100B
+        price: 100_000, // BP ใหม่
         cpDiscount: 0.20, // 20% CP
     };
 
@@ -36,30 +36,26 @@ describe('taxService', () => {
         it('should calculate net price correctly with all discounts', () => {
             const result = calculateNetPrice(sampleItem, sampleSettings);
 
-            // Price = 100B
-            // Tax = 40% = 40B
+            // Price = 100,000 BP
+            // Tax = 40% = 40,000 BP
             // Discounts = SVIP 20% + PC 10% + CP 20% = 50%
-            // Discount amount = 40B * 50% = 20B
-            // Net = 100B - 40B + 20B = 80B
-            expect(result.netPrice).toBe(80000000000);
+            // Discount amount = 40,000 BP * 50% = 20,000 BP
+            // Net = 100,000 BP - 40,000 BP + 20,000 BP = 80,000 BP
+            expect(result.netPrice).toBe(80_000);
         });
 
         it('should calculate gross tax correctly', () => {
             const result = calculateNetPrice(sampleItem, sampleSettings);
 
-            // Tax = 40% of 100B = 40B
-            expect(result.grossTax).toBe(40000000000);
+            expect(result.grossTax).toBe(40_000);
         });
 
         it('should include discount breakdown', () => {
             const result = calculateNetPrice(sampleItem, sampleSettings);
 
-            // 40B tax * 20% SVIP = 8B
-            expect(result.discountBreakdown.svip).toBe(8000000000);
-            // 40B tax * 10% PC = 4B
-            expect(result.discountBreakdown.pc).toBe(4000000000);
-            // 40B tax * 20% CP = 8B
-            expect(result.discountBreakdown.cp).toBe(8000000000);
+            expect(result.discountBreakdown.svip).toBe(8_000);
+            expect(result.discountBreakdown.pc).toBe(4_000);
+            expect(result.discountBreakdown.cp).toBe(8_000);
         });
 
         it('should handle no discounts', () => {
@@ -74,8 +70,7 @@ describe('taxService', () => {
 
             const result = calculateNetPrice(noDiscountItem, noDiscountSettings);
 
-            // Net = 100B - 40B = 60B (no discounts)
-            expect(result.netPrice).toBe(60000000000);
+            expect(result.netPrice).toBe(60_000);
         });
 
         it('should handle zero price', () => {
@@ -100,13 +95,8 @@ describe('taxService', () => {
 
         const result = calculateNetPrice(highDiscountItem, noOtherDiscountSettings);
 
-        // Price = 100B
-        // Tax = 40% = 40B
-        // Discount rate = 45%
-        // Discount amount = 40B * 45% = 18B
-        // Net = (100B - 40B) + 18B = 78B
-        expect(result.netPrice).toBe(78000000000);
-        expect(result.discountBreakdown.cp).toBe(18000000000);
+        expect(result.netPrice).toBe(78_000);
+        expect(result.discountBreakdown.cp).toBe(18_000);
     });
 
     it('should include and calculate correctly with 50% CP discount', () => {
@@ -126,26 +116,21 @@ describe('taxService', () => {
 
         const result = calculateNetPrice(highDiscountItem, noOtherDiscountSettings);
 
-        // Price = 100B
-        // Tax = 40% = 40B
-        // Discount rate = 50%
-        // Discount amount = 40B * 50% = 20B
-        // Net = (100B - 40B) + 20B = 80B
-        expect(result.netPrice).toBe(80000000000);
-        expect(result.discountBreakdown.cp).toBe(20000000000);
+        expect(result.netPrice).toBe(80_000);
+        expect(result.discountBreakdown.cp).toBe(20_000);
     });
 
 
     describe('calculateTotalSummary', () => {
         it('should sum multiple items correctly', () => {
             const items: TaxPlayerItem[] = [
-                { id: '1', name: 'Player 1', price: 100000000000, cpDiscount: 0.20 },
-                { id: '2', name: 'Player 2', price: 50000000000, cpDiscount: 0.10 },
+                { id: '1', name: 'Player 1', price: 100_000, cpDiscount: 0.20 },
+                { id: '2', name: 'Player 2', price: 50_000, cpDiscount: 0.10 },
             ];
 
             const result = calculateTotalSummary(items, sampleSettings);
 
-            expect(result.totalPrice).toBe(150000000000);
+            expect(result.totalPrice).toBe(150_000);
             expect(result.itemCount).toBe(2);
         });
 
@@ -207,75 +192,61 @@ describe('taxService', () => {
 
     describe('formatNumber', () => {
         it('should format with commas', () => {
-            expect(formatNumber(1000000)).toContain('1');
-            expect(formatNumber(1000000).length).toBeGreaterThan(1);
+            expect(formatNumber(1000000)).toBe('1,000,000');
         });
 
         it('should handle decimals', () => {
-            const result = formatNumber(1234.56);
-            expect(result).toContain('.');
+            expect(formatNumber(1234.56)).toBe('1,234.56');
         });
 
         it('should not show decimals for whole numbers', () => {
-            const result = formatNumber(1000);
-            // Should not end with .00
-            expect(result.endsWith('.00')).toBe(false);
+            expect(formatNumber(1000)).toBe('1,000');
         });
     });
 
-    describe('formatShortNumber', () => {
-        it('should format billions with B suffix', () => {
-            const result = formatShortNumber(100000000000);
-            expect(result).toBe('100B');
-        });
-
-        it('should show decimals for non-round numbers', () => {
-            const result = formatShortNumber(61100000000);
-            expect(result).toBe('61.1B');
-        });
-
-        it('should return "0B" for zero', () => {
-            const result = formatShortNumber(0);
-            expect(result).toBe('0B');
+    describe('formatBPAmount', () => {
+        it.each([
+            [0, '0 BP'],
+            [1_000, '1,000 BP'],
+            [10_000, '10,000 BP'],
+            [800_000_000, '800,000,000 BP'],
+            [61.1, '61.1 BP'],
+            [1.23456, '1.235 BP'],
+        ])('formats %s as %s', (value, expected) => {
+            expect(formatBPAmount(value)).toBe(expected);
         });
     });
 
-    describe('formatBInput', () => {
-        it('should format to billions without B suffix', () => {
-            const result = formatBInput(100000000000);
-            expect(result).toBe('100');
+    describe('formatBPInput', () => {
+        it('should keep the price in new BP without scaling', () => {
+            expect(formatBPInput(1000)).toBe('1000');
         });
 
         it('should show decimals', () => {
-            const result = formatBInput(61100000000);
-            expect(result).toBe('61.1');
+            expect(formatBPInput(61.1)).toBe('61.1');
         });
 
         it('should return empty string for zero', () => {
-            const result = formatBInput(0);
+            const result = formatBPInput(0);
             expect(result).toBe('');
         });
     });
 
-    describe('parseBInput', () => {
-        it('should parse whole number billions', () => {
-            const result = parseBInput('100');
-            expect(result).toBe(100000000000);
-        });
-
-        it('should parse decimal billions', () => {
-            const result = parseBInput('61.1');
-            expect(result).toBe(61100000000);
-        });
-
-        it('should return 0 for invalid input', () => {
-            expect(parseBInput('')).toBe(0);
-            expect(parseBInput('abc')).toBe(0);
-        });
-
-        it('should not accept negative values', () => {
-            const result = parseBInput('-100');
-            expect(result).toBe(0);
+    describe('parseBPInput', () => {
+        it.each([
+            ['1000', 1000],
+            [' 1,000.5 ', 1000.5],
+            ['61.1', 61.1],
+            ['0.000001', 0.000001],
+            ['', 0],
+            ['abc', 0],
+            ['100abc', 0],
+            ['1.2.3', 0],
+            ['-100', 0],
+            ['Infinity', 0],
+            ['9'.repeat(400), 0],
+        ])('parses %s as %s new BP', (value, expected) => {
+            expect(parseBPInput(value)).toBe(expected);
         });
     });
 

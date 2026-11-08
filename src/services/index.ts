@@ -64,5 +64,5 @@ export {
     generateItemId,
     createNewPlayerItem,
     formatNumber,
-    formatShortNumber,
+    formatBPAmount,
 } from './taxService';

@@ -13,9 +13,9 @@ export const TAX_CONFIG = {
     PC_DISCOUNT_RATE: 0.1,
 
     // ===== Number Formatting =====
-    /** หน่วยสำหรับแปลงเป็น B (พันล้าน) */
-    BILLION_UNIT: 1_000_000_000,
-    /** จำนวนทศนิยมสูงสุดสำหรับแสดงผล B */
+    /** ตัวหารสำหรับแปลงข้อมูลที่บันทึกเป็น BP เดิมให้เป็น BP ใหม่ */
+    LEGACY_BP_DIVISOR: 1_000_000,
+    /** จำนวนทศนิยมสูงสุดสำหรับแสดงผล BP */
     MAX_DECIMAL_PLACES: 3,
 
     // ===== Discount Options =====

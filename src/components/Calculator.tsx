@@ -7,7 +7,6 @@ import {
     calculateOVR,
     calculateUpgradedOVR,
     getEfficientUpgrades,
-    EfficientUpgradeResult,
 } from "@/utils/calculation";
 import PositionSelect from "./PositionSelect";
 import StatInput from "./StatInput";
@@ -19,50 +18,12 @@ export default function Calculator() {
     const [position, setPosition] = useState<string>("ST");
     const [stats, setStats] = useState<StatValues>({});
     const [upgradedStats, setUpgradedStats] = useState<Set<string>>(new Set());
-    const [baseOVR, setBaseOVR] = useState<number>(0);
-    const [upgradedOVR, setUpgradedOVR] = useState<number>(0);
-    const [efficientResult, setEfficientResult] =
-        useState<EfficientUpgradeResult | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
     const [hasCalculated, setHasCalculated] = useState(false);
     const [showTips, setShowTips] = useState(false);
 
-    useEffect(() => {
-        const positionData = ovrWeights[position];
-        if (positionData) {
-            const initialStats: StatValues = {};
-            positionData.stats.forEach((s) => {
-                initialStats[s.stat] = 0;
-            });
-            setStats(initialStats);
-            setUpgradedStats(new Set());
-        }
-    }, [position]);
-
-    useEffect(() => {
-        const positionData = ovrWeights[position];
-        if (positionData) {
-            const base = calculateOVR(stats, positionData.stats);
-            const upgraded = calculateUpgradedOVR(
-                stats,
-                positionData.stats,
-                Array.from(upgradedStats)
-            );
-            setBaseOVR(base);
-            setUpgradedOVR(upgraded);
-
-            const hasStats = Object.values(stats).some((v) => v > 0);
-            if (hasStats) {
-                const efficient = getEfficientUpgrades(stats, position);
-                setEfficientResult(efficient);
-            } else {
-                setEfficientResult(null);
-            }
-        }
-    }, [stats, upgradedStats, position]);
-
     const handleStatChange = useCallback((stat: string, value: number) => {
         setStats((prev) => ({ ...prev, [stat]: value }));
+        if (value <= 0) setHasCalculated(false);
     }, []);
 
     const handleToggleUpgrade = useCallback((stat: string) => {
@@ -82,22 +43,27 @@ export default function Calculator() {
     }, []);
 
     const handlePositionChange = useCallback((newPosition: string) => {
+        if (newPosition === position) return;
         setPosition(newPosition);
-    }, []);
-
-    const handleReset = useCallback(() => {
-        const positionData = ovrWeights[position];
-        if (positionData) {
-            const resetStats: StatValues = {};
-            positionData.stats.forEach((s) => {
-                resetStats[s.stat] = 0;
-            });
-            setStats(resetStats);
-            setUpgradedStats(new Set());
-        }
+        setStats({});
+        setUpgradedStats(new Set());
+        setHasCalculated(false);
     }, [position]);
 
+    const handleReset = useCallback(() => {
+        setStats({});
+        setUpgradedStats(new Set());
+        setHasCalculated(false);
+    }, []);
+
     const positionData = ovrWeights[position];
+    const baseOVR = positionData ? calculateOVR(stats, positionData.stats) : 0;
+    const upgradedOVR = positionData
+        ? calculateUpgradedOVR(stats, positionData.stats, Array.from(upgradedStats))
+        : 0;
+    const efficientResult = Object.values(stats).some((value) => value > 0)
+        ? getEfficientUpgrades(stats, position)
+        : null;
 
     // Check if all stats are filled
     const allStatsFilled = positionData
@@ -109,19 +75,13 @@ export default function Calculator() {
         ? positionData.stats.filter((s) => stats[s.stat] && stats[s.stat] > 0).length
         : 0;
     const totalCount = positionData?.stats.length || 0;
+    const isLoading = allStatsFilled && !hasCalculated;
 
-    // Trigger loading when all stats are filled for the first time
     useEffect(() => {
-        if (allStatsFilled && !hasCalculated && !isLoading) {
-            setIsLoading(true);
-            setTimeout(() => {
-                setIsLoading(false);
-                setHasCalculated(true);
-            }, 1000);
-        } else if (!allStatsFilled && hasCalculated) {
-            setHasCalculated(false);
-        }
-    }, [allStatsFilled, hasCalculated, isLoading]);
+        if (!allStatsFilled) return;
+        const timer = setTimeout(() => setHasCalculated(true), 1000);
+        return () => clearTimeout(timer);
+    }, [allStatsFilled]);
 
     return (
         <div className="calculator max-w-6xl mx-auto">

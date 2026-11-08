@@ -14,8 +14,14 @@ import {
     UPGRADE_DATA,
     BASE_CHANCE_MAP,
 } from '@/services/upgradeService';
+import { simulateUpgradeWithBoost } from '@/data/upgradeChances';
 
 describe('upgradeService', () => {
+    it('preserves the boolean result of the legacy upgrade helper', () => {
+        expect(simulateUpgradeWithBoost(1, 5)).toBe(true);
+        expect(simulateUpgradeWithBoost(13, 5)).toBe(false);
+    });
+
     describe('getUpgradeInfo', () => {
         it('should return upgrade info for valid level', () => {
             const result = getUpgradeInfo(1);
