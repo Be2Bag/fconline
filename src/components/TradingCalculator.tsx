@@ -156,7 +156,7 @@ export default function TradingCalculator() {
     const profitLabel = sale ? sale.profit > 0 ? "กำไร" : sale.profit < 0 ? "ขาดทุน" : "คุ้มทุน" : "กำไร / ขาดทุน";
     const message = analysis.status === "invalid" ? {
         "purchase-price": "กรอกราคาซื้อมากกว่า 0 เพื่อเริ่มคำนวณ",
-        "sale-price": "ราคาขายต้องมากกว่า 0 หรือเว้นว่างเพื่อดูราคาคุ้มทุนอย่างเดียว",
+        "sale-price": "ราคาขายต้องมากกว่า 0 หรือเว้นว่างเพื่อดูราคาขายขั้นต่ำที่ไม่ขาดทุนอย่างเดียว",
         "range": "ราคาอยู่นอกช่วงที่คำนวณได้อย่างแม่นยำ กรุณาตรวจตัวเลขและหน่วย M/B",
     }[analysis.reason] : null;
 
@@ -168,7 +168,7 @@ export default function TradingCalculator() {
                     <span className="sticker-green sticker text-xs">ภาษี 40%</span>
                 </div>
                 <p className="text-sm mb-1">เลือกราคาซื้อและราคาขายเป็น M หรือ B เพื่อคำนวณกำไรหลังภาษี</p>
-                <p className="text-xs mb-4">1B = 1,000M · เว้นราคาขายว่างได้เพื่อดูราคาคุ้มทุน</p>
+                <p className="text-xs mb-4">1B = 1,000M · เว้นราคาขายว่างได้เพื่อดูราคาขายขั้นต่ำที่ไม่ขาดทุน</p>
                 <div className="flex items-center flex-wrap gap-2">
                     <span className="font-bold text-sm mr-3">SVIP ทุกคน</span>
                     {TAX_CONFIG.SVIP_DISCOUNT_OPTIONS.map(option => {
@@ -187,8 +187,9 @@ export default function TradingCalculator() {
                         <button onClick={addPlayer} className="border-2 border-black bg-[#7BF1A8] px-3 py-2 shadow-[3px_3px_0px_#1a1a1a]">+ เพิ่มนักเตะ</button>
                     </div>
                 </div>
+                <p className="text-xs text-black/80 mb-3">ราคาขายขั้นต่ำที่ไม่ขาดทุน คำนวณหลังหักภาษีตาม SVIP และคูปองที่เลือกแล้ว</p>
                 <div className={`hidden lg:grid ${columns} bg-black text-white text-center text-xs font-bold gap-2 p-3`}>
-                    {["#", "ชื่อ", "ราคาซื้อ", "ราคาขาย", "คูปอง", "ราคาคุ้มทุน", "กำไร / ขาดทุน", "ลบ"].map(title => <span key={title}>{title}</span>)}
+                    {["#", "ชื่อ", "ราคาซื้อ", "ราคาขาย", "คูปอง", "ราคาขายขั้นต่ำที่ไม่ขาดทุน", "กำไร / ขาดทุน", "ลบ"].map(title => <span key={title}>{title}</span>)}
                 </div>
                 {rows.map(({ player, result, sale }, i) => <div key={player.id}
                     className={`grid grid-cols-2 gap-2 items-center border-3 border-black bg-gray-50 p-3 mt-2 text-sm font-bold ${columns}`}>
@@ -202,7 +203,7 @@ export default function TradingCalculator() {
                             onChange={e => { const cp = TAX_CONFIG.CP_DISCOUNT_OPTIONS.find(o => String(o.value) === e.target.value); if (cp) editPlayer(player.id, { cpDiscount: cp.value }); }}>
                             {TAX_CONFIG.CP_DISCOUNT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select></label>
-                    <span className="text-center"><span className="block lg:hidden text-xs">ราคาคุ้มทุน</span>{result.status === "ready" ? formatBPAmount(result.minimumSalePrice) : "—"}</span>
+                    <span className="text-center"><span className="block lg:hidden text-xs">ราคาขายขั้นต่ำที่ไม่ขาดทุน</span>{result.status === "ready" ? formatBPAmount(result.minimumSalePrice) : "—"}</span>
                     <span className="text-center"><span className="block lg:hidden text-xs">กำไร / ขาดทุน</span>{sale ? signedAmount(sale.profit) : "—"}</span>
                     <button aria-label={`ลบ ${player.name || "ชื่อนักเตะ" + (i+1)}`} disabled={list.players.length === 1} onClick={() => removePlayer(player.id)}
                         className="justify-self-end px-2 border-2 border-black bg-[#FF6B6B] disabled:bg-gray-200">×</button>
@@ -224,8 +225,8 @@ export default function TradingCalculator() {
             {analysis.status === "ready" ? (
                 <div className="grid lg:grid-cols-3 gap-4" aria-live="polite">
                     <section className="bg-[#FFDE00] border-4 border-black p-4 shadow-[5px_5px_0px_#1a1a1a] min-w-0">
-                        <h3 className="font-black text-lg">ราคาขายคุ้มทุน</h3>
-                        <p className="text-xs text-black/80 mt-1">ภายใต้ SVIP และคูปองที่เลือก</p>
+                        <h3 className="font-black text-lg">ราคาขายขั้นต่ำที่ไม่ขาดทุน</h3>
+                        <p className="text-xs text-black/80 mt-1">คำนวณหลังหักภาษีตาม SVIP และคูปองที่เลือกแล้ว</p>
                         <div className="text-3xl font-black my-4 break-words">{formatBPAmount(analysis.minimumSalePrice)}</div>
                         <p className="text-sm font-bold">รับสุทธิ {formatBPAmount(analysis.netAtMinimum)}</p>
                         <p className="text-xs text-black/80 mt-2">ปัดราคาขึ้นเพื่อให้เงินสุทธิไม่ต่ำกว่าทุน</p>
