@@ -68,7 +68,7 @@ export default function Home() {
           onClick={() => setShowCoffee(true)}
         >
           {/* NEW Badge */}
-          <div className="absolute -top-3 -right-3 bg-[#FF6B6B] text-white text-[8px] font-bold px-2 py-1 border-2 border-black rotate-[12deg] z-10">
+          <div className="absolute -top-3 -right-3 bg-[#FF6B6B] text-black text-[8px] font-bold px-2 py-1 border-2 border-black rotate-[12deg] z-10">
             HOT!
           </div>
 
@@ -97,7 +97,7 @@ export default function Home() {
           </div>
 
           {/* Click hint */}
-          <div className="text-[8px] text-center mt-1 text-black/50 group-hover:text-black transition-colors">
+          <div className="text-[8px] text-center mt-1 text-black/80 group-hover:text-black transition-colors">
             👆 คลิกเพื่อขยาย
           </div>
         </div>
@@ -219,12 +219,12 @@ export default function Home() {
             <span className="sticker-green sticker text-xs rotate-[-1deg]">⬆️ +2</span>
             <span className="sticker text-xs rotate-[2deg]">🏅 TOP</span>
           </div>
-          <p className="text-xs text-black/50 mb-2">
+          <p className="text-xs text-black/80 mb-2">
             Made with 💛 | ไม่มีส่วนเกี่ยวข้องกับ EA Sports
           </p>
-          <p className="text-xs text-black/40">
+          <p className="text-xs text-black/80">
             Dev by <span className="font-bold">Be2Bag</span> |
-            <a href="mailto:dev.be2bag@gmail.com" className="underline hover:text-black/60 ml-1">
+            <a href="mailto:dev.be2bag@gmail.com" className="underline hover:text-black ml-1">
               dev.be2bag@gmail.com
             </a>
           </p>

@@ -21,6 +21,19 @@ export const PC_DISCOUNT_RATE = TAX_CONFIG.PC_DISCOUNT_RATE;
 export const CP_DISCOUNT_OPTIONS = TAX_CONFIG.CP_DISCOUNT_OPTIONS;
 export const SVIP_DISCOUNT_OPTIONS = TAX_CONFIG.SVIP_DISCOUNT_OPTIONS;
 
+const bpNumberFormatter = new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: TAX_CONFIG.MAX_DECIMAL_PLACES,
+});
+
+const compactBPFormatter = new Intl.NumberFormat('en-US', {
+    useGrouping: false,
+    maximumFractionDigits: TAX_CONFIG.MAX_DECIMAL_PLACES,
+    roundingMode: 'trunc',
+});
+
+const MILLION_BP = 1_000_000;
+const BILLION_BP = 1_000_000_000;
+
 /**
  * คำนวณราคาสุทธิสำหรับรายการเดียว
  * 
@@ -110,16 +123,22 @@ export function createNewPlayerItem(): TaxPlayerItem {
  * แสดงทศนิยมไม่เกิน 3 ตำแหน่ง
  */
 export function formatNumber(num: number): string {
-    return num.toLocaleString('en-US', {
-        maximumFractionDigits: TAX_CONFIG.MAX_DECIMAL_PLACES,
-    });
+    return bpNumberFormatter.format(num);
 }
 
 /**
- * แสดงจำนวน BP ใหม่โดยตรง พร้อม comma และหน่วย BP
+ * ย่อจำนวน BP ใหม่เป็น B/M โดยไม่ปัดยอดขึ้น
  */
 export function formatBPAmount(num: number): string {
+    if (num >= BILLION_BP) return `${compactBPFormatter.format(num / BILLION_BP)}B`;
+    if (num >= MILLION_BP) return `${compactBPFormatter.format(num / MILLION_BP)}M`;
     return `${formatNumber(num)} BP`;
+}
+
+/** ยอดสุทธิใช้หน่วย M โดยแสดงยอดต่ำกว่าล้านเป็น BP เต็ม */
+export function formatBPInMillions(num: number): string {
+    if (num < MILLION_BP) return formatBPAmount(num);
+    return `${compactBPFormatter.format(num / MILLION_BP)}M`;
 }
 
 

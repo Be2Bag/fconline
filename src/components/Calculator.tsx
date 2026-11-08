@@ -109,11 +109,11 @@ export default function Calculator() {
                                 {/* Tips button */}
                                 <button
                                     onClick={() => setShowTips(true)}
-                                    className="px-3 py-1 bg-[#FF90E8] border-2 border-black text-[10px] md:text-xs font-bold
+                                    className="px-3 py-1 bg-[#FF90E8] text-black border-2 border-black text-[10px] md:text-xs font-bold
                                         shadow-[2px_2px_0px_#1a1a1a] hover:shadow-[3px_3px_0px_#1a1a1a]
                                         hover:translate-x-[-1px] hover:translate-y-[-1px]
                                         active:translate-x-[1px] active:translate-y-[1px] active:shadow-none
-                                        transition-all animate-pulse hover:animate-none"
+                                        transition-all"
                                 >
                                     💡 อ่านก่อน!
                                 </button>
@@ -169,7 +169,7 @@ export default function Calculator() {
                                 <div className="text-sm font-bold text-black/70">
                                     กรุณากรอกสถิติให้ครบทุกช่อง
                                 </div>
-                                <div className="text-xs text-black/50 mt-1">
+                                <div className="text-xs text-black/80 mt-1">
                                     เหลืออีก {totalCount - filledCount} ช่อง
                                 </div>
                             </div>
@@ -196,7 +196,7 @@ export default function Calculator() {
                                 {/* Upgraded OVR */}
                                 {upgradedStats.size > 0 && (
                                     <div className="text-center p-3 bg-[#7BF1A8] border-3 border-black shadow-[3px_3px_0px_#1a1a1a]">
-                                        <div className="text-[10px] md:text-xs text-black/60 uppercase mb-1">
+                                        <div className="text-[10px] md:text-xs text-black/80 uppercase mb-1">
                                             หลังอัพ +2
                                         </div>
                                         <div className="text-4xl md:text-5xl font-bold text-black font-mono">

@@ -10,6 +10,7 @@ import {
     createNewPlayerItem,
     formatNumber,
     formatBPAmount,
+    formatBPInMillions,
     formatBPInput,
     parseBPInput,
     CP_DISCOUNT_OPTIONS,
@@ -209,11 +210,32 @@ describe('taxService', () => {
             [0, '0 BP'],
             [1_000, '1,000 BP'],
             [10_000, '10,000 BP'],
-            [800_000_000, '800,000,000 BP'],
+            [800_000_000, '800M'],
+            [1_000_000, '1M'],
+            [35_400_000, '35.4M'],
+            [130_891_375, '130.891M'],
+            [999_999_999, '999.999M'],
+            [1_000_000_000, '1B'],
+            [3_130_000_000, '3.13B'],
+            [3_130_999_999, '3.13B'],
             [61.1, '61.1 BP'],
             [1.23456, '1.235 BP'],
         ])('formats %s as %s', (value, expected) => {
             expect(formatBPAmount(value)).toBe(expected);
+        });
+    });
+
+    describe('formatBPInMillions', () => {
+        it.each([
+            [0, '0 BP'],
+            [600, '600 BP'],
+            [999_999, '999,999 BP'],
+            [1_000_000, '1M'],
+            [130_891_375, '130.891M'],
+            [130_891_999, '130.891M'],
+            [3_130_000_000, '3130M'],
+        ])('formats the net balance %s as %s', (value, expected) => {
+            expect(formatBPInMillions(value)).toBe(expected);
         });
     });
 

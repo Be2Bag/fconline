@@ -67,7 +67,7 @@ export default function PositionSelect({
                       `}
                                         >
                                             <span className="block font-bold text-black">{position}</span>
-                                            <span className="block text-[9px] md:text-[10px] text-black/70">
+                                            <span className="block text-[9px] md:text-[10px] text-black">
                                                 {ovrWeights[position]?.thaiName}
                                             </span>
                                         </button>

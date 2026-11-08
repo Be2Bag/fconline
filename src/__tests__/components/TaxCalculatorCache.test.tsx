@@ -136,6 +136,60 @@ describe('TaxCalculator local cache', () => {
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').players[0].price).toBe(0);
   });
 
+  it('updates the CP coupon and total without changing another player', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      version: 2,
+      globalSettings: { svipDiscount: 0, pcEnabled: false },
+      players: [
+        { id: 'first', name: 'First', price: 1000, cpDiscount: 0 },
+        { id: 'second', name: 'Second', price: 2000, cpDiscount: 0 },
+      ],
+    }));
+    await act(async () => root.render(<TaxCalculator />));
+
+    const select = container.querySelector('select');
+    if (!select) throw new Error('CP coupon selector is unavailable');
+    await act(async () => {
+      select.value = '0.5';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    expect(Array.from(container.querySelectorAll('select'), (element) => element.value))
+      .toEqual(['0.5', '0.5', '0', '0']);
+    expect(container.textContent).toContain('800 BP');
+    expect(container.textContent).toContain('2,000 BP');
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').players).toEqual([
+      { id: 'first', name: 'First', price: 1000, cpDiscount: 0.5 },
+      { id: 'second', name: 'Second', price: 2000, cpDiscount: 0 },
+    ]);
+  });
+
+  it('shows B/M results and a net balance in M while keeping full BP inputs and cache', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      version: 2,
+      globalSettings: { svipDiscount: 0, pcEnabled: false },
+      players: [{ id: 'compact', name: 'Nico Paz', price: 3_130_000_000, cpDiscount: 0 }],
+    }));
+    await act(async () => root.render(<TaxCalculator />));
+
+    const inputs = container.querySelectorAll<HTMLInputElement>('input[inputmode="decimal"]');
+    expect(Array.from(inputs, (input) => input.value)).toEqual(['3130000000', '3130000000']);
+    expect(container.textContent).toContain('3.13B');
+    expect(container.textContent).toContain('1.878B');
+    expect(container.textContent).toContain('1878M');
+    expect(container.querySelector('[title="1,878,000,000 BP"]')?.textContent).toBe('1.878B');
+
+    await enterPrice('218,152,292');
+    expect(container.textContent).toContain('130.891M');
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').players[0].price).toBe(218_152_292);
+
+    await act(async () => root.unmount());
+    root = createRoot(container);
+    await act(async () => root.render(<TaxCalculator />));
+    expect(container.textContent).toContain('130.891M');
+    expect(container.querySelector<HTMLInputElement>('input[inputmode="decimal"]')?.value).toBe('218152292');
+  });
+
   it('saves tax calculator state to localStorage after changes', async () => {
     await act(async () => {
       root.render(<TaxCalculator />);
