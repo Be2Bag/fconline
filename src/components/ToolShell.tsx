@@ -1,48 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import Calculator from "@/components/Calculator";
-import TaxCalculator from "@/components/TaxCalculator";
-import TradingCalculator from "@/components/TradingCalculator";
+import { useState, type ReactNode } from "react";
 import Image from "next/image";
+import { TOOLS, type ToolName } from "@/config/site.config";
 
-// Declare gtag for TypeScript
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}
-
-type TabType = "calculator" | "upgrade-simulator" | "tax-calculator" | "trading-calculator";
-
-// Tab display names for analytics
-const TAB_NAMES: Record<TabType, string> = {
-  "calculator": "OVR Calculator",
-  "upgrade-simulator": "Upgrade Simulator",
-  "tax-calculator": "Tax Calculator",
-  "trading-calculator": "Trading Calculator",
-};
-
-export default function Home() {
-  const [activeTab, setActiveTab] = useState<TabType>("calculator");
+export default function ToolShell({ tool, children }: { tool: ToolName; children: ReactNode }) {
   const [showCoffee, setShowCoffee] = useState(false);
-
-  // Track tab change in Google Analytics
-  const trackTabChange = useCallback((tab: TabType) => {
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("event", "page_view", {
-        page_title: TAB_NAMES[tab],
-        page_location: `${window.location.origin}/#${tab}`,
-        page_path: `/#${tab}`,
-      });
-    }
-  }, []);
-
-  // Handle tab change with tracking
-  const handleTabChange = useCallback((tab: TabType) => {
-    setActiveTab(tab);
-    trackTabChange(tab);
-  }, [trackTabChange]);
+  const current = TOOLS[tool];
 
   return (
     <div className="min-h-screen noise-bg relative overflow-hidden">
@@ -115,10 +79,10 @@ export default function Home() {
 
           {/* Title */}
           <h1 className="hero-title text-3xl md:text-5xl lg:text-6xl font-bold mb-2">
-            OVR CALCULATOR
+            {current.heading}
           </h1>
           <p className="text-sm md:text-base text-black/70 max-w-md mx-auto px-4">
-            คำนวณค่า OVR + ระบบแนะนำอัพเกรด
+            {current.description}
           </p>
 
           {/* Extra decorative stickers */}
@@ -130,71 +94,29 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Tab Navigation */}
-      <div className="max-w-6xl mx-auto px-3 md:px-4 mb-4 md:mb-6 relative">
+      <nav aria-label="เครื่องมือ FC Online" className="max-w-6xl mx-auto px-3 md:px-4 mb-4 md:mb-6 relative">
         <div className="flex flex-wrap gap-2 md:gap-3">
-          <button
-            onClick={() => handleTabChange("calculator")}
-            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
-              border-4 border-black transition-all relative
-              ${activeTab === "calculator"
-                ? "bg-[#FFDE00] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
-                : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
-              }`}
-          >
-            🧮 คำนวณ OVR
-            {activeTab === "calculator" && (
-              <span className="absolute -top-2 -right-2 text-xs bg-[#FF6B6B] text-black px-1.5 py-0.5 border-2 border-black rotate-[12deg]">
-                HOT
-              </span>
-            )}
-          </button>
-          {/* <button
-            onClick={() => handleTabChange("upgrade-simulator")}
-            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
-              border-4 border-black transition-all relative
-              ${activeTab === "upgrade-simulator"
-                ? "bg-[#7BF1A8] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
-                : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
-              }`}
-          >
-            ⚡ ตีบวก
-          </button> */}
-          <button
-            onClick={() => handleTabChange("tax-calculator")}
-            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
-              border-4 border-black transition-all relative
-              ${activeTab === "tax-calculator"
-                ? "bg-[#FFD700] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
-                : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
-              }`}
-          >
-            💰 ภาษีตลาด
-            {activeTab === "tax-calculator" && (
-              <span className="absolute -top-2 -right-2 text-xs bg-[#7BF1A8] text-black px-1.5 py-0.5 border-2 border-black rotate-[12deg]">
-                NEW
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => handleTabChange("trading-calculator")}
-            className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-base uppercase tracking-wide
-              border-4 border-black transition-all relative
-              ${activeTab === "trading-calculator"
-                ? "bg-[#FFD700] shadow-[4px_4px_0px_#1a1a1a] translate-x-0 translate-y-0"
-                : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
-              }`}
-          >
-            📈 เก็งกำไรนักเตะ
-          </button>
+          {Object.values(TOOLS).map(page => (
+            <a
+              key={page.path}
+              href={page.path}
+              aria-current={page.path === current.path ? "page" : undefined}
+              className={`flex-1 min-w-[120px] py-3 md:py-4 px-3 md:px-4 text-center font-bold text-xs md:text-base uppercase tracking-wide
+                border-4 border-black transition-all relative
+                ${page.path === current.path
+                  ? "bg-[#FFD700] shadow-[4px_4px_0px_#1a1a1a]"
+                  : "bg-white shadow-[4px_4px_0px_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]"
+                }`}
+            >
+              {page.label}
+            </a>
+          ))}
         </div>
-      </div>
+      </nav>
 
       {/* Main Content */}
-      <main className={`px-3 md:px-4 pb-8 md:pb-12 relative z-10 ${activeTab === "trading-calculator" ? "lg:pr-44 2xl:pr-4" : ""}`}>
-        {activeTab === "calculator" && <Calculator />}
-        {activeTab === "tax-calculator" && <TaxCalculator />}
-        {activeTab === "trading-calculator" && <TradingCalculator />}
+      <main className={`px-3 md:px-4 pb-8 md:pb-12 relative z-10 ${tool === "trading" ? "lg:pr-44 2xl:pr-4" : ""}`}>
+        {children}
       </main>
 
       {/* Footer */}

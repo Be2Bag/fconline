@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [{ source: "/", destination: "/ovr", permanent: true }];
+  },
   // Security Headers - ป้องกันช่องโหว่ทั่วไป
   async headers() {
     return [

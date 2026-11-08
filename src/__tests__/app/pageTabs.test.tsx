@@ -1,7 +1,9 @@
 import React from 'react';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import Home from '@/app/page';
+import OvrPage from '@/app/ovr/page';
+import TaxPage from '@/app/tax/page';
+import TradingPage from '@/app/trading/page';
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
@@ -20,35 +22,16 @@ jest.mock('@/components/Calculator', () => ({
     },
 }));
 
-jest.mock('@/components/BestPositionFinder', () => ({
-    __esModule: true,
-    default: function MockBestPositionFinder() {
-        return <div>Best position content</div>;
-    },
-}));
-
-jest.mock('@/components/BoxSimulator', () => ({
-    __esModule: true,
-    default: function MockBoxSimulator() {
-        return <div>Box simulator content</div>;
-    },
-}));
-
-jest.mock('@/components/TaxCalculator', () => ({
-    __esModule: true,
-    default: function MockTaxCalculator() {
+jest.mock('@/components/BrowserCalculators', () => ({
+    BrowserTaxCalculator: function MockTaxCalculator() {
         return <div>Tax calculator content</div>;
     },
-}));
-
-jest.mock('@/components/TradingCalculator', () => ({
-    __esModule: true,
-    default: function MockTradingCalculator() {
+    BrowserTradingCalculator: function MockTradingCalculator() {
         return <div>Trading calculator content</div>;
     },
 }));
 
-describe('Home tab navigation', () => {
+describe('Tool page navigation', () => {
     let container: HTMLDivElement;
     let root: Root;
 
@@ -65,24 +48,17 @@ describe('Home tab navigation', () => {
         document.body.removeChild(container);
     });
 
-    it('does not show the best position finder tab', () => {
-        act(() => {
-            root.render(<Home />);
-        });
-
-        const buttonLabels = Array.from(container.querySelectorAll('button')).map(
-            (button) => button.textContent
-        );
-
-        expect(buttonLabels.join(' ')).not.toContain('หาตำแหน่ง');
-    });
-
-    it('opens the trading calculator from its new tab', () => {
-        act(() => root.render(<Home />));
-        const tab = Array.from(container.querySelectorAll('button')).find(button => button.textContent?.includes('เก็งกำไรนักเตะ'));
-        if (!tab) throw new Error('Trading tab missing');
-        act(() => tab.click());
-        expect(container.textContent).toContain('Trading calculator content');
-        expect(container.textContent).not.toContain('Calculator content');
+    it.each([
+        { Page: OvrPage, path: '/ovr', heading: 'OVR Calculator', content: 'Calculator content' },
+        { Page: TaxPage, path: '/tax', heading: 'Tax Calculator', content: 'Tax calculator content' },
+        { Page: TradingPage, path: '/trading', heading: 'Trading Calculator', content: 'Trading calculator content' },
+    ])('renders $path with real navigation links and its own content', ({ Page, path, heading, content }) => {
+        act(() => root.render(<Page />));
+        const links = Array.from(container.querySelectorAll('nav a'));
+        expect(links.map(link => link.getAttribute('href'))).toEqual(['/ovr', '/tax', '/trading']);
+        expect(container.querySelector('nav a[aria-current="page"]')?.getAttribute('href')).toBe(path);
+        expect(container.querySelector('h1')?.textContent?.trim()).toBe(heading);
+        expect(container.querySelector('main')?.textContent).toBe(content);
+        expect(container.querySelector('nav')?.textContent).not.toContain('เปิดกล่อง');
     });
 });
