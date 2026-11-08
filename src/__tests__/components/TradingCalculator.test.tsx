@@ -51,11 +51,12 @@ describe('TradingCalculator', () => {
         expect(container.textContent).toContain('กรอกราคาซื้อมากกว่า 0');
         await enter('trade-purchase', '1');
         expect(container.textContent).toContain('1.667B');
-        expect(container.textContent).toContain('กรอกราคาขายที่คาดไว้เพื่อดูกำไรหรือขาดทุน');
+        expect(container.textContent).not.toContain('รายละเอียด ·');
+        expect(container.textContent).not.toContain('คูปองขั้นต่ำที่ต้องใช้');
         expect(container.textContent).not.toContain('Infinity');
     });
 
-    it('changes a 280M loss into 8M profit with the suggested CP60 and remembers it without touching tax data', async () => {
+    it('changes a 280M loss into 8M profit with CP60 and remembers it without touching tax data', async () => {
         const taxCache = JSON.stringify({ sentinel: 'unchanged' });
         localStorage.setItem(taxKey, taxCache);
         await render();
@@ -65,9 +66,8 @@ describe('TradingCalculator', () => {
         expect(container.textContent).toContain('CP 60%');
         await choose('#trade-coupon', '0.55');
         expect(container.textContent).toContain('-16M');
-        await click('ใช้คูปองที่แนะนำ');
+        await choose('#trade-coupon', '0.6');
         expect(container.textContent).toContain('+8M');
-        expect(container.textContent).toContain('+0.8%');
         expect(container.querySelector<HTMLSelectElement>('#trade-coupon')?.value).toBe('0.6');
         expect(localStorage.getItem(taxKey)).toBe(taxCache);
         const saved = JSON.parse(localStorage.getItem(TRADING_CALCULATOR_STORAGE_KEY) ?? 'null');
@@ -82,24 +82,24 @@ describe('TradingCalculator', () => {
         expect(container.textContent).toContain('+8M');
     });
 
-    it('recommends CP40 with SVIP20 for a sale of 1.2B', async () => {
+    it('calculates 8M profit with CP40 and SVIP20 for a sale of 1.2B', async () => {
         await render();
         await enter('trade-purchase', '1');
         await enter('trade-sale', '1.2');
         await click('SVIP 20%');
-        await click('ใช้คูปองที่แนะนำ');
+        await choose('#trade-coupon', '0.4');
         expect(container.querySelector<HTMLSelectElement>('#trade-coupon')?.value).toBe('0.4');
         expect(container.textContent).toContain('+8M');
     });
 
-    it('explains when even CP60 cannot cover the cost', async () => {
+    it('shows the loss and minimum price in the row when CP60 cannot cover the cost', async () => {
         await render();
         await enter('trade-purchase', '1');
         await enter('trade-sale', '1');
         await click('SVIP 20%');
-        expect(container.textContent).toContain('คูปองสูงสุดยังไม่คุ้มทุน');
-        expect(container.textContent).toContain('ยังขาด 80M');
-        expect(container.textContent).toContain('ควรขายอย่างน้อย 1.087B');
+        await choose('#trade-coupon', '0.6');
+        expect(container.textContent).toContain('-80M');
+        expect(container.textContent).toContain('1.087B');
         expect(Array.from(container.querySelectorAll('button')).some(button => button.textContent === 'ใช้คูปองที่แนะนำ')).toBe(false);
     });
 

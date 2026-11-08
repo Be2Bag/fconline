@@ -20,7 +20,6 @@ interface TradingFormState {
 const defaultState: TradingFormState = {
     purchaseInput: "", saleInput: "", purchaseUnit: "B", saleUnit: "B", svipDiscount: 0, cpDiscount: 0,
 };
-const percentageFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 3, roundingMode: "trunc" });
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
@@ -97,12 +96,14 @@ function signedAmount(value: number): string {
 
 const columns = "lg:grid-cols-[32px_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1.4fr)_minmax(0,.85fr)_minmax(0,.85fr)_minmax(0,1fr)_32px]";
 
+const validationMessages = {
+    "purchase-price": "กรอกราคาซื้อมากกว่า 0 เพื่อเริ่มคำนวณ",
+    "sale-price": "ราคาขายต้องมากกว่า 0 หรือเว้นว่างเพื่อดูราคาขายขั้นต่ำที่ไม่ขาดทุนอย่างเดียว",
+    "range": "ราคาอยู่นอกช่วงที่คำนวณได้อย่างแม่นยำ กรุณาตรวจตัวเลขและหน่วย M/B",
+};
+
 export default function TradingCalculator() {
     const [list, setList] = useState(readState);
-    const form = list.players.find(p => p.id === list.active)!;
-    function setForm(update: (previous: Player) => TradingFormState) {
-        setList(previous => ({ ...previous, players: previous.players.map(p => p.id === previous.active ? { ...p, ...update(p) } : p) }));
-    }
     function addPlayer() {
         setList(previous => {
             const id = Math.max(...previous.players.map(p => p.id)) + 1;
@@ -150,15 +151,6 @@ export default function TradingCalculator() {
     const totals = rows.reduce((sum, row) => row.sale ? {
         count: sum.count + 1, cost: sum.cost + row.cost, fee: sum.fee + row.sale.effectiveTax, profit: sum.profit + row.sale.profit
     } : sum, { count: 0, cost: 0, fee: 0, profit: 0 });
-    const analysis = rows.find(row => row.player.id === form.id)!.result;
-    const sale = analysis.status === "ready" ? analysis.sale : null;
-    const coupon = sale?.coupon;
-    const profitLabel = sale ? sale.profit > 0 ? "กำไร" : sale.profit < 0 ? "ขาดทุน" : "คุ้มทุน" : "กำไร / ขาดทุน";
-    const message = analysis.status === "invalid" ? {
-        "purchase-price": "กรอกราคาซื้อมากกว่า 0 เพื่อเริ่มคำนวณ",
-        "sale-price": "ราคาขายต้องมากกว่า 0 หรือเว้นว่างเพื่อดูราคาขายขั้นต่ำที่ไม่ขาดทุนอย่างเดียว",
-        "range": "ราคาอยู่นอกช่วงที่คำนวณได้อย่างแม่นยำ กรุณาตรวจตัวเลขและหน่วย M/B",
-    }[analysis.reason] : null;
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -193,8 +185,7 @@ export default function TradingCalculator() {
                 </div>
                 {rows.map(({ player, result, sale }, i) => <div key={player.id}
                     className={`grid grid-cols-2 gap-2 items-center border-3 border-black bg-gray-50 p-3 mt-2 text-sm font-bold ${columns}`}>
-                    <button aria-label={`ดูรายละเอียดนักเตะ ${i + 1}`} aria-pressed={player.id === list.active}
-                        onClick={() => editPlayer(player.id, {})} className="justify-self-start px-2 py-1 aria-pressed:bg-[#FFD700]">{i + 1}</button>
+                    <span className="justify-self-start px-2 py-1">{i + 1}</span>
                     <input id={fieldId(player,"name")} aria-label={`ชื่อนักเตะ${i + 1}`} placeholder={`ชื่อนักเตะ${i + 1}`}
                         value={player.name} onChange={e => editPlayer(player.id, { name: e.target.value })} className="min-w-0 border-2 border-black bg-white p-2 text-center" />
                     {priceField(player, "purchase")}{priceField(player, "sale")}
@@ -207,6 +198,7 @@ export default function TradingCalculator() {
                     <span className="text-center"><span className="block lg:hidden text-xs">กำไร / ขาดทุน</span>{sale ? signedAmount(sale.profit) : "—"}</span>
                     <button aria-label={`ลบ ${player.name || "ชื่อนักเตะ" + (i+1)}`} disabled={list.players.length === 1} onClick={() => removePlayer(player.id)}
                         className="justify-self-end px-2 border-2 border-black bg-[#FF6B6B] disabled:bg-gray-200">×</button>
+                    {result.status === "invalid" && <p role="status" className="col-span-full text-xs text-red-800">{validationMessages[result.reason]}</p>}
                 </div>)}
             </section>
             <section className="bg-white border-4 border-black shadow-[8px_8px_0px_#1a1a1a] p-4 md:p-6">
@@ -221,46 +213,7 @@ export default function TradingCalculator() {
                 </div>
                 <div className="flex items-center justify-between gap-3 flex-wrap bg-[#FFD700] border-4 border-black p-5 shadow-[6px_6px_0px_black]"><strong>💰 กำไร / ขาดทุนสุทธิรวม</strong><strong className="text-3xl">{signedAmount(totals.profit)}</strong></div>
             </section>
-            <h3 className="font-black">รายละเอียด · {form.name || `ชื่อนักเตะ${list.players.indexOf(form)+1}`}</h3>
-            {analysis.status === "ready" ? (
-                <div className="grid lg:grid-cols-3 gap-4" aria-live="polite">
-                    <section className="bg-[#FFDE00] border-4 border-black p-4 shadow-[5px_5px_0px_#1a1a1a] min-w-0">
-                        <h3 className="font-black text-lg">ราคาขายขั้นต่ำที่ไม่ขาดทุน</h3>
-                        <p className="text-xs text-black/80 mt-1">คำนวณหลังหักภาษีตาม SVIP และคูปองที่เลือกแล้ว</p>
-                        <div className="text-3xl font-black my-4 break-words">{formatBPAmount(analysis.minimumSalePrice)}</div>
-                        <p className="text-sm font-bold">รับสุทธิ {formatBPAmount(analysis.netAtMinimum)}</p>
-                        <p className="text-xs text-black/80 mt-2">ปัดราคาขึ้นเพื่อให้เงินสุทธิไม่ต่ำกว่าทุน</p>
-                    </section>
-                    <section className={`border-4 border-black p-4 shadow-[5px_5px_0px_#1a1a1a] min-w-0 ${sale && sale.profit < 0 ? "bg-red-100" : "bg-[#FFD700]"}`}>
-                        <h3 className="font-black text-lg">{profitLabel}</h3>
-                        {sale ? <>
-                            <div className="text-3xl font-black my-4 break-words">{signedAmount(sale.profit)}</div>
-                            <p className="text-sm font-bold">รับสุทธิ {formatBPAmount(sale.netPrice)}</p>
-                            <p className="text-sm mt-2">ภาษีหลังส่วนลด {formatBPAmount(sale.effectiveTax)}</p>
-                            <p className="text-sm mt-2">ผลตอบแทนต่อทุน {sale.roi > 0 ? "+" : ""}{percentageFormatter.format(sale.roi)}%</p>
-                        </> : <p className="text-sm text-black/80 mt-4">กรอกราคาขายที่คาดไว้เพื่อดูกำไรหรือขาดทุน</p>}
-                    </section>
-                    <section className="bg-[#E8F5E9] border-4 border-black p-4 shadow-[5px_5px_0px_#1a1a1a] min-w-0">
-                        <h3 className="font-black text-lg">คูปองขั้นต่ำที่ต้องใช้</h3>
-                        {coupon ? coupon.status === "available" ? <>
-                            <div className="text-2xl font-black my-4">{coupon.cpDiscount === 0 ? "ไม่ต้องใช้คูปอง" : `CP ${Math.round(coupon.cpDiscount * 100)}%`}</div>
-                            <p className="text-sm font-bold">รับสุทธิ {formatBPAmount(coupon.netPrice)}</p>
-                            <p className="text-sm mt-2">กำไร {signedAmount(coupon.profit)}</p>
-                            <button disabled={form.cpDiscount === coupon.cpDiscount}
-                                onClick={() => setForm(previous => ({ ...previous, cpDiscount: coupon.cpDiscount }))}
-                                className="w-full bg-white border-2 border-black px-2 py-3 font-bold text-sm mt-4 shadow-[3px_3px_0px_#1a1a1a] disabled:bg-gray-200 disabled:shadow-none">
-                                {form.cpDiscount === coupon.cpDiscount ? "กำลังใช้ตัวเลือกนี้" : "ใช้คูปองที่แนะนำ"}
-                            </button>
-                        </> : <>
-                            <p className="font-black text-lg my-4">คูปองสูงสุดยังไม่คุ้มทุน</p>
-                            <p className="text-sm">ใช้ CP {Math.round(coupon.cpDiscount * 100)}% รับสุทธิ {formatBPAmount(coupon.netPrice)}</p>
-                            <p className="text-sm font-bold mt-2">ยังขาด {formatBPAmount(coupon.shortfall)}</p>
-                            <p className="text-sm font-bold mt-3">ควรขายอย่างน้อย {formatBPAmount(coupon.minimumSalePrice)}</p>
-                        </> : <p className="text-sm text-black/80 mt-4">กรอกราคาขายที่คาดไว้เพื่อหาคูปองขั้นต่ำ</p>}
-                    </section>
-                </div>
-            ) : <div role="status" className="bg-yellow-100 border-2 border-black p-4 font-bold text-sm">{message}</div>}
-            <p className="text-xs text-black/80">คำนวณจากราคาที่กรอก ยังไม่ตรวจช่วงราคาหรือขั้นราคาที่เกมอนุญาตให้ตั้งขาย</p>
+
         </div>
     );
 }
